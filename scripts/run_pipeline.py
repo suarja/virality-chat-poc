@@ -160,8 +160,9 @@ def main():
     output_dir.mkdir(parents=True, exist_ok=True)
 
     try:
-        # Initialize video_urls
+        # Initialize video_urls and raw_data_path
         video_urls = []
+        raw_data_path = None
 
         # 1. Scraping Phase
         if not args.skip_scraping:
@@ -172,13 +173,44 @@ def main():
                 for video in result.get("videos", []):
                     video_urls.append(video.get("url"))
 
+            # Use the newly scraped data
+            raw_data_path = next(Path("data/raw").glob("tiktok_*.json"))
+        else:
+            # If skipping scraping, find the latest data file for the specified account
+            raw_data_dir = Path("data/raw")
+            if args.accounts:
+                account = args.accounts[0].replace("@", "")
+                data_files = list(raw_data_dir.glob(f"tiktok_{account}*.json"))
+                if not data_files:
+                    logger.error(
+                        f"No data files found for account {args.accounts[0]}")
+                    sys.exit(1)
+
+                # Use the most recent file
+                raw_data_path = max(
+                    data_files, key=lambda p: p.stat().st_mtime)
+
+                # Load video URLs from the file
+                with open(raw_data_path) as f:
+                    data = json.load(f)
+                    for video in data.get("videos", []):
+                        video_urls.append(video.get("url"))
+
+                logger.info(
+                    f"Loaded {len(video_urls)} video URLs from {raw_data_path}")
+            else:
+                logger.error("No account specified with --accounts")
+                sys.exit(1)
+
+        if raw_data_path is None:
+            logger.error("No data file found to process")
+            sys.exit(1)
+
         # 2. Gemini Analysis Phase
-        if not args.skip_gemini:
+        if not args.skip_gemini and video_urls:
             run_gemini_phase(video_urls)
 
         # 3. Feature Extraction Phase
-        # Use latest scraped data
-        raw_data_path = Path("data/raw/test_leaelui_100642.json")
         gemini_dir = Path("docs/gemini_analysis")
 
         features_df, metadata_list = run_feature_extraction_phase(
