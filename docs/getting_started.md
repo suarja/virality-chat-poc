@@ -67,6 +67,9 @@ LOG_LEVEL=INFO
 ### Step 4: Test Installation
 
 ```bash
+# Test the batch processing system
+python scripts/test_batch_system.py
+
 # Run the validation script
 python scripts/validate_setup.py
 
@@ -78,66 +81,75 @@ jupyter --version
 
 ## 🎯 Running the Pipeline
 
-### Phase 1: Data Collection
+### New Batch Processing System
+
+The pipeline now uses a sophisticated batch processing system that:
+
+- **Processes accounts in configurable batches** (default: 5 accounts per batch)
+- **Tracks progress** in `source.txt` to avoid reprocessing
+- **Logs errors** in `errors.txt` for debugging and retry
+- **Supports resuming** from where it left off
+- **Limits total videos** to prevent excessive processing
+
+### Basic Pipeline Run
 
 ```bash
-# Run the scraping script with default settings (uses config/settings.py values)
-python scripts/run_scraping.py
+# Run with default settings (5 accounts per batch, 15 videos per account)
+python scripts/run_pipeline.py --dataset v1
 
-# Or with custom parameters
-python scripts/run_scraping.py --accounts @username1 @username2 --max-videos 50
+# Run with custom batch size
+python scripts/run_pipeline.py --dataset v1 --batch-size 3
 
-# Check the results
-ls -la data/raw/
+# Run with custom video limits
+python scripts/run_pipeline.py --dataset v1 --videos-per-account 10 --max-total-videos 300
 ```
 
-**✅ Validation**:
-
-- Check `data/raw/` for individual JSON files (format: `tiktok_username_*.json`)
-- A consolidated file will be created (format: `tiktok_consolidated_YYYYMMDD_HHMMSS.json`)
-
-### Phase 2: AI Analysis
+### Advanced Pipeline Options
 
 ```bash
-# Run Gemini analysis on scraped videos
-python scripts/run_pipeline.py --skip-scraping
+# Retry failed accounts from previous runs
+python scripts/run_pipeline.py --dataset v1 --retry-failed
 
-# Or run analysis on specific accounts
-python scripts/run_pipeline.py --accounts @username1 @username2 --max-videos 50 --skip-scraping
+# Retry only specific phase for failed accounts
+python scripts/run_pipeline.py --dataset v1 --retry-failed --retry-phase analysis
+
+# Small test run
+python scripts/run_pipeline.py --dataset test --batch-size 1 --videos-per-account 2
 ```
 
-**✅ Validation**:
+### Pipeline Output Structure
 
-- Check `docs/gemini_analysis/` for analysis files
-- Each video will have its own JSON file (format: `video_N_analysis_YYYYMMDD_HHMMSS.json`)
-
-### Phase 3: Evaluation
-
-```bash
-# Run evaluation on the collected data
-python scripts/run_evaluation.py
-
-# Check the evaluation results
-cat logs/evaluation.log
+```
+data/
+├── dataset_v1/
+│   ├── source.txt          # List of processed accounts
+│   ├── errors.txt          # Error tracking
+│   └── metadata.json       # Dataset metadata
+├── raw/
+│   └── dataset_v1/
+│       └── batch_*.json    # Consolidated video data
+├── analysis/
+│   └── dataset_v1/
+│       └── gemini_*.json   # Gemini analysis results
+└── features/
+    └── dataset_v1/
+        └── features.csv    # Final feature dataset
 ```
 
-**✅ Validation**:
-
-- Check `logs/evaluation.log` for detailed evaluation results
-- Review any warnings or quality issues identified
-
-### Complete Pipeline
-
-Run all phases at once:
+### Monitoring Progress
 
 ```bash
-# Run complete pipeline with default settings
-python scripts/run_pipeline.py
+# Check processing status
+cat data/dataset_v1/source.txt
 
-# Run with custom parameters
-python scripts/run_pipeline.py \
-    --accounts @username1 @username2 \
-    --max-videos 50
+# Check for errors
+cat data/dataset_v1/errors.txt
+
+# View pipeline logs
+tail -f logs/pipeline_v1.log
+
+# View error logs
+tail -f logs/errors.log
 ```
 
 ## 🔧 Development Commands
@@ -160,6 +172,9 @@ pip freeze > requirements.txt  # Update requirements.txt
 ### Testing
 
 ```bash
+# Test batch processing system
+python scripts/test_batch_system.py
+
 # Run scraping tests
 python scripts/test_scraping.py
 
@@ -206,8 +221,41 @@ flake8 src/ tests/ scripts/
    pip install -r requirements.txt
    ```
 
+4. **Batch Processing Issues**
+
+   - Check `source.txt` for processed accounts
+   - Review `errors.txt` for specific error details
+   - Use `--retry-failed` to retry failed accounts
+
 ### Getting Help
 
 1. Check the logs in `logs/` directory
-2. Run `python scripts/validate_setup.py --verbose`
-3. See [project documentation](docs/)
+2. Review `data/dataset_*/errors.txt` for specific errors
+3. Run `python scripts/validate_setup.py --verbose`
+4. See [project documentation](docs/)
+
+## 📊 Dataset Management
+
+### Creating New Datasets
+
+```bash
+# Create a new dataset
+python scripts/run_pipeline.py --dataset v2 --batch-size 3
+
+# Continue processing existing dataset
+python scripts/run_pipeline.py --dataset v1 --batch-size 5
+```
+
+### Dataset Versioning
+
+- Each dataset has its own directory structure
+- Progress is tracked independently per dataset
+- Features are consolidated per dataset
+- Easy to compare different dataset versions
+
+### Quality Control
+
+- Minimum 1,000 views per video
+- Maximum 6 months video age
+- Automatic duplicate detection
+- Error tracking and reporting
