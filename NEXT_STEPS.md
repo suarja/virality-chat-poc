@@ -1,126 +1,138 @@
-# 🎯 Prochaines Étapes Immédiates
+# 🎯 Prochaines Étapes - Virality Chat POC
 
-## ✅ État Actuel
+## ✅ Status Actuel
 
-- ✅ Structure du projet créée
-- ✅ Dépendances installées
-- ✅ Documentation complète
-- ✅ Scripts de setup et validation prêts
-
-## 🚀 Étapes Suivantes (Dans l'ordre)
-
-### 1. Configuration des Clés API (OBLIGATOIRE)
-
-```bash
-# Copier le template
-cp env.template .env
-
-# Éditer avec vos vraies clés
-nano .env  # ou votre éditeur préféré
-```
-
-**Vous devez obtenir :**
-
-- **Apify API Token** : https://apify.com/account/integrations
-- **Gemini API Key** : https://makersuite.google.com/app/apikey
-
-### 2. Activer l'Environnement Virtuel
-
-```bash
-source venv/bin/activate
-```
-
-### 3. Validation Complète
-
-```bash
-python3 scripts/validate_setup.py
-```
-
-**Résultat attendu :** Toutes les vérifications doivent passer ✅
-
-### 4. Configuration des Comptes TikTok
-
-Éditer `config/settings.py` et ajouter 3-5 comptes TikTok à analyser :
-
-```python
-TIKTOK_ACCOUNTS = [
-    "@compte1",
-    "@compte2",
-    "@compte3"
-]
-```
-
-**Recommandations :**
-
-- Choisir des comptes avec différents niveaux de popularité
-- Mélanger des niches différentes (lifestyle, tech, entertainment)
-- Éviter les comptes trop gros (>10M followers) pour commencer
-
-### 5. Premier Test de Scraping
-
-```bash
-# Tester l'initialisation du scraper
-python3 -c "
-import sys
-sys.path.append('src')
-from scraping.tiktok_scraper import TikTokScraper
-scraper = TikTokScraper()
-print('✅ Scraper initialisé avec succès')
-"
-```
-
-### 6. Lancer Streamlit (Test Interface)
-
-```bash
-streamlit run streamlit_app/app.py
-```
-
-Vérifier que l'interface s'ouvre sur http://localhost:8501
-
-### 7. Ouvrir le Notebook d'Exploration
-
-```bash
-jupyter notebook notebooks/01_data_exploration.ipynb
-```
-
-## 📋 Checklist de Validation
-
-Avant de passer à la Phase 1, vérifiez :
-
-- [ ] Clés API configurées dans `.env`
-- [ ] Environnement virtuel activé
-- [ ] Script de validation passé ✅
-- [ ] Comptes TikTok configurés
-- [ ] Scraper s'initialise sans erreur
-- [ ] Streamlit fonctionne
-- [ ] Jupyter fonctionne
-
-## 🔄 Commits Réguliers
-
-À chaque étape, faire un commit :
-
-```bash
-git add .
-git commit -m "⚙️ Configure API keys and TikTok accounts"
-```
-
-## 🆘 En Cas de Problème
-
-1. **Vérifier** [GETTING_STARTED.md](GETTING_STARTED.md)
-2. **Consulter** la section troubleshooting
-3. **Relancer** `python3 scripts/validate_setup.py`
-4. **Documenter** l'erreur pour debugging
-
-## 🎯 Objectif Phase 1
-
-Une fois ces étapes terminées, vous serez prêt pour :
-
-- Scraper vos premiers comptes TikTok
-- Explorer les données dans Jupyter
-- Commencer l'analyse de viralité
-
-**Temps estimé :** 30-60 minutes selon la vitesse d'obtention des clés API.
+- **Projet configuré** ✅
+- **Validation réussie** ✅ (8/8 checks)
+- **Comptes TikTok configurés** ✅ (9 comptes, mix niches)
+- **Research synthesis complétée** ✅ (6 articles académiques)
+- **Script scraping optimisé** ✅
 
 ---
 
-**🚀 Prêt ? Suivez les étapes ci-dessus dans l'ordre et validez chaque point !**
+## 🚀 Phase 1: Data Collection & Exploration (Jours 1-2)
+
+### Étape 1A: Lancement du Scraping ⏳
+
+**Commande :**
+
+```bash
+# Activer l'environnement
+source venv/bin/activate
+
+# Lancer le scraping (durée estimée: 30-45 min)
+python scripts/run_scraping.py
+```
+
+**Résultats attendus :**
+
+- **~315 vidéos** collectées (35 par compte × 9 comptes)
+- **9 fichiers individuels** par compte
+- **1 fichier consolidé** avec métadonnées
+- **Filtrage automatique** : min 1K vues
+
+**Comptes ciblés :**
+
+- @leaelui (danse/lifestyle)
+- @athenasol (humour/sketchs)
+- @loupernaut (voyage/curiosités)
+- @unefille.ia (IA/tech)
+- @pastelcuisine (food/couple)
+- @lindalys1\_
+- @swarecito (data/IA)
+- @contiped (rénovation/humour)
+- @swiss_fit.cook (recettes fitness)
+
+### Étape 1B: Exploration des Données
+
+**Après scraping réussi :**
+
+```bash
+# Lancer Jupyter pour exploration
+jupyter notebook notebooks/01_data_exploration.ipynb
+```
+
+**Analyses à effectuer :**
+
+1. **Distribution des métriques** (vues, likes, comments)
+2. **Patterns par niche** (différences lifestyle vs tech vs food)
+3. **Validation seuils viralité** (10K, 100K, 1M)
+4. **Features temporelles** (heures/jours publication)
+5. **Quality checks** (données manquantes, outliers)
+
+---
+
+## 🎯 Métriques de Succès Phase 1
+
+**Données collectées :**
+
+- ✅ **250+ vidéos** minimum (target: 315)
+- ✅ **7+ comptes** réussis (target: 9)
+- ✅ **Distribution équilibrée** par niche
+- ✅ **Metadata complètes** (timestamps, metrics)
+
+**Insights identifiés :**
+
+- ✅ **Patterns de viralité** par niche
+- ✅ **Features les plus corrélées** aux vues
+- ✅ **Validation empirique** des seuils théoriques
+- ✅ **Plan feature engineering** défini
+
+---
+
+## 🔧 En cas de Problèmes
+
+### Scraping échoue
+
+```bash
+# Vérifier configuration
+cat .env | grep -E "(APIFY|GEMINI)"
+
+# Test connexion API
+python -c "from src.scraping.tiktok_scraper import TikTokScraper; s=TikTokScraper(); print('✅ OK')"
+
+# Scraping compte individuel pour debug
+python -c "
+from src.scraping.tiktok_scraper import TikTokScraper
+s = TikTokScraper()
+result = s.scrape_profile('@leaelui', 5)
+print(f'Collected: {len(result.get(\"videos\", []))} videos')
+"
+```
+
+### Données insuffisantes
+
+- **Réduire MAX_VIDEOS_PER_ACCOUNT** à 20-25
+- **Ajouter comptes backup** avec plus d'audience
+- **Ajuster MIN_VIEWS_THRESHOLD** si nécessaire
+
+### Exploration lente
+
+- **Échantillonner** 100-150 vidéos pour tests rapides
+- **Focus features niveau 1** (métadonnées) avant Gemini
+- **Paralléliser** l'analyse par niche
+
+---
+
+## 📋 Checklist Immédiate
+
+- [ ] **Configurer clés API** (Apify + Gemini) dans .env
+- [ ] **Lancer scraping complet** : `python scripts/run_scraping.py`
+- [ ] **Vérifier données** : `ls -la data/raw/`
+- [ ] **Ouvrir notebook exploration** : `jupyter notebook`
+- [ ] **Analyser patterns baseline**
+- [ ] **Définir features Phase 2**
+
+---
+
+## 🎯 Après Phase 1
+
+**Si succès (>250 vidéos, patterns clairs) :**
+→ **Phase 2** : Feature Engineering + Baseline Model
+
+**Si blocage :**
+→ **Ajustement stratégie** : moins de comptes, plus de focus
+
+---
+
+_Dernière mise à jour : Après research synthesis + scraping strategy_
