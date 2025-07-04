@@ -1,7 +1,34 @@
-# Core Data Science
-pandas>=2.0.0
-numpy>=1.24.0
-scipy>=1.10.0
+# Core dependencies
+numpy>=1.21.0
+pandas>=1.3.0
+scikit-learn>=1.0.0
+
+# API and Data Collection
+requests>=2.26.0
+python-dotenv>=0.19.0
+apify-client>=1.0.0
+
+# AI/ML
+google-generativeai>=0.3.0
+torch>=2.0.0
+transformers>=4.30.0
+
+# Evaluation Framework
+mlflow>=2.8.0
+pydantic>=2.0.0
+pytest>=7.0.0
+hypothesis>=6.0.0
+
+# Visualization and Reporting
+plotly>=5.3.0
+streamlit>=1.22.0
+jupyter>=1.0.0
+
+# Development Tools
+black>=22.3.0
+flake8>=4.0.0
+isort>=5.10.0
+mypy>=0.910
 
 # Machine Learning
 scikit-learn>=1.3.0
@@ -11,8 +38,6 @@ optuna>=3.3.0
 
 # Data Storage & Processing
 duckdb>=0.8.0
-requests>=2.31.0
-python-dotenv>=1.0.0
 
 # Visualization
 matplotlib>=3.7.0
@@ -21,19 +46,15 @@ plotly>=5.15.0
 altair>=5.0.0
 
 # Web Scraping & APIs
-apify-client>=1.4.0
-google-generativeai>=0.3.2
 beautifulsoup4>=4.12.0
 yt-dlp>=2023.12.30
 
 # Demo & Interface
-streamlit>=1.25.0
 gradio>=3.40.0
 fastapi>=0.100.0
 uvicorn>=0.23.0
 
 # Documentation & Reporting
-jupyter>=1.0.0
 jupyterlab>=4.0.0
 quarto>=0.1.0
 nbformat>=5.9.0
@@ -46,10 +67,4 @@ isort>=5.12.0
 
 # Deployment (optional)
 gunicorn>=21.2.0
-python-multipart>=0.0.6
-
-# Evaluation dependencies
-mlflow>=2.10.0
-pydantic>=2.5.0
-numpy>=1.24.0
-scikit-learn>=1.3.0 
+python-multipart>=0.0.6 
