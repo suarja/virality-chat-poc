@@ -1,132 +1,92 @@
 #!/usr/bin/env python3
 """
 Script for automated evaluation runs.
+Starts with raw data evaluation, will expand to feature and model evaluation
+as the pipeline develops.
 """
-from utils.report_utils import get_report_generator
-from utils.mlflow_utils import get_tracker
-from models.evaluation import evaluate_predictions
-from features.evaluation import evaluate_feature_extraction
 from config.evaluation_config import get_config
+from src.features.evaluation import evaluate_raw_data
 import sys
+import logging
 from pathlib import Path
 
 # Add project root to path
 project_root = Path(__file__).parent.parent
-sys.path.append(str(project_root))
+sys.path.insert(0, str(project_root))
 
-# Import evaluation modules
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('logs/evaluation.log'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
 
 
 def main():
     """Run evaluation pipeline."""
-    # Get configuration
-    config = get_config()
-
-    # Initialize MLflow tracker
-    tracker = get_tracker(experiment_name="automated_evaluation")
-
-    # Initialize report generator
-    report_gen = get_report_generator(mlflow_tracker=tracker)
-
     try:
-        # Load and evaluate features
-        import pandas as pd
-        features_df = pd.read_csv(
-            project_root / "data/processed/extracted_features.csv")
+        # Get configuration
+        config = get_config()
 
-        with tracker:
-            feature_eval_results = evaluate_feature_extraction(
-                features_df,
-                expected_schema=config.feature_extraction.required_fields
-            )
+        # Phase 1: Evaluate raw data
+        logger.info("Starting raw data evaluation...")
 
-        print("Feature Extraction Evaluation Results:")
-        print(f"Completeness: {feature_eval_results['completeness']:.2%}")
-        print(f"Accuracy: {feature_eval_results['accuracy']:.2%}")
+        # Find latest raw data file
+        raw_data_dir = Path("data/raw")
+        raw_data_files = list(raw_data_dir.glob("tiktok_consolidated_*.json"))
+
+        if not raw_data_files:
+            logger.error("No raw data files found in data/raw/")
+            return 1
+
+        latest_data = max(raw_data_files, key=lambda p: p.stat().st_mtime)
+        logger.info(f"Evaluating raw data file: {latest_data}")
+
+        # Run evaluation
+        metrics = evaluate_raw_data(latest_data)
+
+        # Print results
+        print("\n📊 Raw Data Evaluation Results:")
+        print("=" * 50)
+        print(f"Total Videos: {metrics.total_videos}")
+        print(f"Total Accounts: {metrics.total_accounts}")
         print(
-            f"Average Latency: {feature_eval_results['avg_latency_ms']:.2f}ms")
+            f"Average Videos per Account: {sum(metrics.videos_per_account.values()) / len(metrics.videos_per_account):.1f}")
 
-        # Load and evaluate predictions
-        import numpy as np
-        from sklearn.metrics import accuracy_score, precision_recall_fscore_support
+        print("\nField Completeness:")
+        for field, completeness in metrics.field_completeness.items():
+            print(f"- {field}: {completeness:.1%}")
 
-        # Load actual predictions (replace with your model's predictions)
-        predictions_df = pd.read_csv(
-            project_root / "data/processed/model_predictions.csv")
-        y_true = predictions_df["true_label"].values
-        y_pred = predictions_df["predicted_label"].values
+        print("\nMissing Fields:")
+        for field, count in metrics.missing_fields.items():
+            print(f"- {field}: {count} videos")
 
-        with tracker:
-            pred_eval_results = evaluate_predictions(
-                y_true=y_true,
-                y_pred=y_pred,
-                model_metadata={"name": "virality_predictor_v1"}
-            )
+        # Check quality thresholds
+        has_warnings = False
+        if metrics.total_videos < 10:
+            print("\n⚠️ WARNING: Very few videos collected")
+            has_warnings = True
 
-        print("\nPrediction Evaluation Results:")
-        print(f"Accuracy: {pred_eval_results['accuracy']:.2%}")
-        print(f"Precision: {pred_eval_results['precision']:.2%}")
-        print(f"Recall: {pred_eval_results['recall']:.2%}")
-        print(f"F1 Score: {pred_eval_results['f1']:.2%}")
+        for field, completeness in metrics.field_completeness.items():
+            if completeness < 0.9:
+                print(
+                    f"\n⚠️ WARNING: Low completeness for {field}: {completeness:.1%}")
+                has_warnings = True
 
-        # Generate report
-        report_path = report_gen.generate_report(
-            evaluation_type="full_system",
-            metrics={
-                **feature_eval_results,
-                **pred_eval_results
-            },
-            component_name="virality_predictor",
-            version="1.0.0",
-            dataset_size=len(y_true),
-            environment="production",
-            data_quality={
-                "missing_rate": feature_eval_results["missing_rate"],
-                "invalid_rate": feature_eval_results["invalid_rate"]
-            },
-            performance_metrics={
-                "feature_extraction_latency_ms": feature_eval_results["avg_latency_ms"],
-                "prediction_latency_ms": pred_eval_results["avg_inference_time_ms"]
-            },
-            error_analysis={
-                "feature_errors": feature_eval_results["error_details"],
-                "prediction_errors": pred_eval_results["error_analysis"]
-            }
-        )
+        if has_warnings:
+            print("\n⚠️ Some quality checks failed. Please review the warnings above.")
+            return 1
 
-        print(f"\nEvaluation report generated at: {report_path}")
-
-        # Check thresholds and alert if needed
-        alert_thresholds = {
-            "completeness": 0.95,
-            "accuracy": 0.80,
-            "f1": 0.75
-        }
-
-        alerts = []
-        if feature_eval_results["completeness"] < alert_thresholds["completeness"]:
-            alerts.append(
-                f"Feature completeness below threshold: {feature_eval_results['completeness']:.2%}")
-
-        if pred_eval_results["accuracy"] < alert_thresholds["accuracy"]:
-            alerts.append(
-                f"Model accuracy below threshold: {pred_eval_results['accuracy']:.2%}")
-
-        if pred_eval_results["f1"] < alert_thresholds["f1"]:
-            alerts.append(
-                f"Model F1 score below threshold: {pred_eval_results['f1']:.2%}")
-
-        if alerts:
-            print("\n⚠️ ALERTS:")
-            for alert in alerts:
-                print(f"- {alert}")
-            sys.exit(1)
-
-        print("\n✅ All metrics within acceptable thresholds")
+        print("\n✅ All quality checks passed!")
         return 0
 
     except Exception as e:
-        print(f"\n❌ Error during evaluation: {e}")
+        logger.error(f"Error during evaluation: {e}")
         import traceback
         traceback.print_exc()
         return 1
