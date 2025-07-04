@@ -171,7 +171,12 @@ def main():
             # Extract video URLs for Gemini analysis
             for result in results:
                 for video in result.get("videos", []):
-                    video_urls.append(video.get("url"))
+                    if video.get("note") == "Profile has no videos":
+                        logger.error(
+                            f"Account {result.get('username', 'Unknown')} has no videos")
+                        sys.exit(1)
+                    if video.get("url"):  # Only add valid URLs
+                        video_urls.append(video.get("url"))
 
             # Use the newly scraped data
             raw_data_path = next(Path("data/raw").glob("tiktok_*.json"))
@@ -194,10 +199,20 @@ def main():
                 with open(raw_data_path) as f:
                     data = json.load(f)
                     for video in data.get("videos", []):
-                        video_urls.append(video.get("url"))
+                        if video.get("note") == "Profile has no videos":
+                            logger.error(
+                                f"Account {data.get('username', 'Unknown')} has no videos")
+                            sys.exit(1)
+                        if video.get("url"):  # Only add valid URLs
+                            video_urls.append(video.get("url"))
+
+                if not video_urls:
+                    logger.error(
+                        f"No valid video URLs found in {raw_data_path}")
+                    sys.exit(1)
 
                 logger.info(
-                    f"Loaded {len(video_urls)} video URLs from {raw_data_path}")
+                    f"Loaded {len(video_urls)} valid video URLs from {raw_data_path}")
             else:
                 logger.error("No account specified with --accounts")
                 sys.exit(1)
@@ -209,6 +224,9 @@ def main():
         # 2. Gemini Analysis Phase
         if not args.skip_gemini and video_urls:
             run_gemini_phase(video_urls)
+        elif not video_urls:
+            logger.error("No videos to analyze")
+            sys.exit(1)
 
         # 3. Feature Extraction Phase
         gemini_dir = Path("docs/gemini_analysis")
