@@ -1,311 +1,273 @@
-# 🚀 Guide de Démarrage - Virality Chat POC
+# 🚀 Getting Started - TikTok Virality Analysis
 
-## ✅ Prérequis
+## ✅ Prerequisites
 
-Avant de commencer, assurez-vous d'avoir :
+Before starting, ensure you have:
 
-- **Python 3.9+** installé
-- **Git** installé
-- Un compte **Apify** (pour le scraping TikTok)
-- Une clé API **Google Gemini** (pour l'analyse vidéo)
+- **Python 3.9+** installed
+- **Git** installed
+- An **Apify** account (for TikTok scraping)
+- A **Google Gemini** API key (for video analysis)
 
-## 📋 Étapes de Configuration
+## 📋 Setup Steps
 
-### Étape 1 : Cloner et Configurer le Projet
+### Step 1: Clone and Configure Project
 
 ```bash
-# Si pas encore fait, cloner le projet
+# Clone the project if not done already
 git clone <your-repo-url>
 cd virality-chat-poc
 
-# Exécuter le script de setup automatique
+# Run the automated setup script
 python scripts/setup_project.py
 ```
 
-**✅ Validation** : Vous devriez voir :
+**✅ Validation**: You should see:
 
 ```
 ✓ Created directory: data/raw
 ✓ Created directory: data/processed
+✓ Created directory: docs/gemini_analysis
+✓ Created directory: logs
 ✓ Virtual environment created
 ✓ Requirements installed
 ✓ Created .env file from template
 ```
 
-### Étape 2 : Activer l'Environnement Virtuel
+### Step 2: Activate Virtual Environment
 
 ```bash
-# Sur macOS/Linux
+# On macOS/Linux
 source venv/bin/activate
 
-# Sur Windows
+# On Windows
 venv\Scripts\activate
 ```
 
-**✅ Validation** : Votre terminal devrait afficher `(venv)` au début de la ligne.
+**✅ Validation**: Your terminal should show `(venv)` at the start of the line.
 
-### Étape 3 : Configurer les Clés API
+### Step 3: Configure API Keys
 
 ```bash
-# Éditer le fichier .env
-nano .env  # ou votre éditeur préféré
+# Edit the .env file
+nano .env  # or your preferred editor
 ```
 
-Remplir avec vos vraies clés API :
+Fill in with your actual API keys:
 
 ```env
-APIFY_API_TOKEN=votre_token_apify_ici
-GEMINI_API_KEY=votre_cle_gemini_ici
+APIFY_API_TOKEN=your_apify_token_here
+GOOGLE_API_KEY=your_gemini_key_here
 DEBUG=True
 LOG_LEVEL=INFO
 ```
 
-**✅ Validation** : Vérifier que le fichier `.env` existe et contient vos clés.
+**✅ Validation**: Verify that `.env` exists and contains your keys.
 
-### Étape 4 : Tester l'Installation
+### Step 4: Test Installation
 
 ```bash
-# Tester l'import des modules
+# Test module imports
 python -c "from src.scraping.tiktok_scraper import TikTokScraper; print('✅ Import OK')"
+python -c "from src.features.data_processor import DataProcessor; print('✅ Import OK')"
 
-# Tester Jupyter
+# Test Jupyter
 jupyter --version
-
-# Tester Streamlit
-streamlit --version
 ```
 
-**✅ Validation** : Toutes les commandes doivent s'exécuter sans erreur.
+**✅ Validation**: All commands should execute without errors.
 
-## 🎯 Démarrage par Phase
+## 🎯 Running the Pipeline
 
-### Phase 1 : Exploration des Données (Jours 1-2)
+### Phase 1: Data Collection
 
-#### 1.1 Configurer les Comptes TikTok à Analyser
+#### 1.1 Configure TikTok Accounts
 
 ```bash
-# Éditer le fichier de configuration
+# Edit the settings file
 nano config/settings.py
 ```
 
-Ajouter les comptes TikTok dans la liste `TIKTOK_ACCOUNTS` :
+Add TikTok accounts to analyze:
 
 ```python
 TIKTOK_ACCOUNTS = [
     "@username1",
-    "@username2",
-    "@username3"
+    "@username2"
 ]
+MAX_VIDEOS_PER_ACCOUNT = 50
 ```
 
-#### 1.2 Lancer le Scraping (Test)
+#### 1.2 Run TikTok Scraping
 
 ```bash
-# Créer un script de test
-python -c "
-from src.scraping.tiktok_scraper import TikTokScraper
-scraper = TikTokScraper()
-print('✅ Scraper initialisé avec succès')
-"
+# Run the scraping script
+python scripts/run_scraping.py
 ```
 
-**✅ Validation** : Le scraper doit s'initialiser sans erreur.
+**✅ Validation**: Check `data/raw/` for JSON files.
 
-#### 1.3 Ouvrir le Notebook d'Exploration
+### Phase 2: AI Analysis
 
 ```bash
-# Lancer Jupyter
-jupyter notebook notebooks/01_data_exploration.ipynb
+# Run Gemini analysis
+python scripts/test_gemini.py
 ```
 
-**✅ Validation** : Le notebook doit s'ouvrir dans votre navigateur.
+**✅ Validation**: Check `docs/gemini_analysis/` for analysis files.
 
-### Phase 2 : Interface de Démonstration
-
-#### 2.1 Lancer l'Application Streamlit
+### Phase 3: Feature Engineering
 
 ```bash
-# Depuis la racine du projet
-streamlit run streamlit_app/app.py
+# Run feature extraction
+python src/run_feature_extraction.py \
+    --raw-data data/raw/test_leaelui_100642.json \
+    --gemini-analysis docs/gemini_analysis \
+    --output-dir data/processed
 ```
 
-**✅ Validation** : L'application doit s'ouvrir sur `http://localhost:8501`
+**✅ Validation**: Check `data/processed/` for feature files.
 
-#### 2.2 Vérifier les Pages
+### Complete Pipeline
 
-- 🏠 **Accueil** : Présentation du projet
-- 📊 **Exploration** : Métriques des données
-- 🤖 **Prédiction** : Interface de prédiction
-- 📈 **Insights** : Recommandations
-
-**✅ Validation** : Toutes les pages doivent se charger correctement.
-
-## 🔧 Commandes Utiles
-
-### Gestion de l'Environnement
+Run all phases at once:
 
 ```bash
-# Activer l'environnement
+python scripts/run_pipeline.py \
+    --accounts @username1 @username2 \
+    --max-videos 50 \
+    --output-dir data/processed
+```
+
+## 🔧 Useful Commands
+
+### Environment Management
+
+```bash
+# Activate environment
 source venv/bin/activate  # macOS/Linux
 venv\Scripts\activate     # Windows
 
-# Désactiver l'environnement
+# Deactivate environment
 deactivate
 
-# Installer de nouvelles dépendances
+# Install new dependencies
 pip install package_name
-pip freeze > requirements.txt  # Mettre à jour requirements.txt
+pip freeze > requirements.txt  # Update requirements.txt
 ```
 
-### Développement
+### Development
 
 ```bash
-# Formater le code
+# Format code
 black src/
-black streamlit_app/
+black scripts/
 
-# Lancer les tests (quand ils existent)
+# Run tests
 pytest tests/
 
-# Lancer Jupyter Lab (alternative à Jupyter Notebook)
-jupyter lab
+# Run specific test file
+pytest tests/features/test_feature_extractor.py
 ```
 
-### Git et Versioning
+### Git and Versioning
 
 ```bash
-# Voir le statut
+# Check status
 git status
 
-# Ajouter les modifications
+# Add changes
 git add .
 
-# Commit avec message descriptif
-git commit -m "✨ Add feature: description"
+# Commit with descriptive message
+git commit -m "✨ feat: description"  # New feature
+git commit -m "🐛 fix: description"   # Bug fix
+git commit -m "📝 docs: description"  # Documentation
+git commit -m "♻️ refactor: description"  # Refactoring
+git commit -m "🧪 test: description"  # Testing
 
-# Pousser vers le repo
+# Push to repo
 git push origin main
 ```
 
-## 🚨 Résolution des Problèmes Courants
+## 🚨 Common Issues Troubleshooting
 
-### Problème 1 : Erreur d'Import
+### Issue 1: Import Error
 
-**Symptôme** : `ModuleNotFoundError: No module named 'src'`
+**Symptom**: `ModuleNotFoundError: No module named 'src'`
 
-**Solution** :
+**Solution**:
 
 ```bash
-# Ajouter le dossier src au PYTHONPATH
-export PYTHONPATH="${PYTHONPATH}:$(pwd)/src"
+# Add src folder to PYTHONPATH
+export PYTHONPATH="${PYTHONPATH}:$(pwd)"
 
-# Ou dans le code Python
+# Or in Python code
 import sys
-sys.path.append('src')
+from pathlib import Path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
 ```
 
-### Problème 2 : Clés API Manquantes
+### Issue 2: Missing API Keys
 
-**Symptôme** : `ValueError: Apify API token is required`
+**Symptom**: `ValueError: API token is required`
 
-**Solution** :
+**Solution**:
 
-1. Vérifier que le fichier `.env` existe
-2. Vérifier que les clés API sont correctement remplies
-3. Redémarrer l'environnement Python
+1. Check `.env` file exists
+2. Verify API keys are correctly filled
+3. Restart Python environment
 
-### Problème 3 : Dépendances Manquantes
+### Issue 3: Missing Dependencies
 
-**Symptôme** : `ModuleNotFoundError: No module named 'package'`
+**Symptom**: `ModuleNotFoundError: No module named 'package'`
 
-**Solution** :
+**Solution**:
 
 ```bash
-# Réinstaller les dépendances
+# Reinstall dependencies
 pip install -r requirements.txt
 
-# Ou installer le package manquant
+# Or install missing package
 pip install package_name
 ```
 
-### Problème 4 : Port Streamlit Occupé
+## 📊 Project Status Check
 
-**Symptôme** : `Port 8501 is already in use`
+### Startup Checklist
 
-**Solution** :
+- [ ] Virtual environment activated
+- [ ] Dependencies installed
+- [ ] API keys configured
+- [ ] Python modules importable
+- [ ] Jupyter working
+- [ ] Git configured
 
-```bash
-# Utiliser un autre port
-streamlit run streamlit_app/app.py --server.port 8502
-
-# Ou tuer le processus existant
-lsof -ti:8501 | xargs kill -9
-```
-
-## 📊 Vérification de l'État du Projet
-
-### Checklist de Démarrage
-
-- [ ] Environnement virtuel activé
-- [ ] Dépendances installées
-- [ ] Clés API configurées
-- [ ] Modules Python importables
-- [ ] Jupyter fonctionne
-- [ ] Streamlit fonctionne
-- [ ] Git configuré
-
-### Commande de Diagnostic
+### Diagnostic Command
 
 ```bash
-# Script de diagnostic complet
-python -c "
-import sys
-print(f'Python version: {sys.version}')
-
-try:
-    import pandas as pd
-    print('✅ pandas OK')
-except ImportError:
-    print('❌ pandas manquant')
-
-try:
-    from src.scraping.tiktok_scraper import TikTokScraper
-    print('✅ TikTokScraper OK')
-except ImportError as e:
-    print(f'❌ TikTokScraper: {e}')
-
-try:
-    import streamlit as st
-    print('✅ streamlit OK')
-except ImportError:
-    print('❌ streamlit manquant')
-
-import os
-if os.path.exists('.env'):
-    print('✅ .env file exists')
-else:
-    print('❌ .env file missing')
-"
+python scripts/validate_setup.py
 ```
 
-## 🎯 Prochaines Étapes
+## 🎯 Next Steps
 
-Une fois le setup terminé :
+After setup:
 
-1. **Commencer par l'exploration** : `jupyter notebook notebooks/01_data_exploration.ipynb`
-2. **Tester le scraping** : Scraper quelques vidéos test
-3. **Valider les données** : Vérifier la qualité des données collectées
-4. **Itérer** : Améliorer progressivement chaque composant
+1. **Start with exploration**: Check example notebooks
+2. **Test scraping**: Scrape a few test videos
+3. **Validate data**: Check data quality
+4. **Iterate**: Progressively improve each component
 
 ## 📞 Support
 
-En cas de problème :
+If you encounter issues:
 
-1. Vérifier cette documentation
-2. Consulter les logs dans `logs/`
-3. Vérifier les issues GitHub
-4. Créer une nouvelle issue avec les détails de l'erreur
+1. Check this documentation
+2. Check logs in `logs/`
+3. Check GitHub issues
+4. Create new issue with error details
 
 ---
 
-**Prêt à commencer ? Suivez les étapes ci-dessus et validez chaque étape avant de passer à la suivante !** 🚀
+**Ready to start? Follow the steps above and validate each before moving to the next!** 🚀

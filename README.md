@@ -1,159 +1,201 @@
-# Virality Chat POC
+# TikTok Video Virality Analysis
 
-> Prédire la viralité d'une vidéo TikTok à partir de l'analyse vidéo IA et des métadonnées — POC Data Engineering, ML & Création de Contenu
+> Predict and understand TikTok video virality through AI analysis and feature engineering
 
----
+## Overview
 
-## 🚀 Démarrage Rapide
+This project implements a complete pipeline for analyzing TikTok video virality:
 
-### 1. Configuration initiale
+1. **Data Collection**: Automated TikTok video scraping
+2. **Content Analysis**: AI-powered video analysis using Google's Gemini
+3. **Feature Engineering**: Comprehensive feature extraction and processing
+
+## Features
+
+- **TikTok Data Collection**:
+  - Profile and video metadata scraping
+  - Configurable video count per account
+  - Rate limiting and error handling
+- **AI Video Analysis**:
+  - Visual elements and style analysis
+  - Content structure evaluation
+  - Engagement factor prediction
+  - Technical quality assessment
+  - Trend alignment analysis
+- **Feature Engineering**:
+  - Basic engagement metrics
+  - Engagement ratios
+  - Content features
+  - Temporal patterns
+  - AI-powered analysis features
+
+## Quick Start
+
+1. **Setup Environment**:
 
 ```bash
-# Exécuter le script de setup automatique
-python scripts/setup_project.py
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-# Activer l'environnement virtuel
-source venv/bin/activate  # Linux/Mac
-# ou
-venv\Scripts\activate     # Windows
-
-# Configurer les clés API
-cp env.template .env
-# Éditer .env avec vos clés API
+# Install dependencies
+pip install -r requirements.txt
 ```
 
-### 2. Validation de l'installation
+2. **Configure API Keys**:
 
 ```bash
-# Vérifier que tout est correctement configuré
-python scripts/validate_setup.py
+# Create .env file
+cp .env.template .env
+
+# Add your API keys
+APIFY_API_TOKEN=your_apify_token
+GOOGLE_API_KEY=your_gemini_key
 ```
 
-### 3. Lancement
+3. **Run Complete Pipeline**:
 
 ```bash
-# Interface Streamlit
-streamlit run streamlit_app/app.py
+# Run with default settings
+python scripts/run_pipeline.py --accounts @username1 @username2
 
-# Ou exploration avec Jupyter
-jupyter notebook notebooks/01_data_exploration.ipynb
+# Or run individual components
+python scripts/run_scraping.py        # 1. Scrape TikTok
+python scripts/test_gemini.py         # 2. Run AI analysis
+python src/run_feature_extraction.py  # 3. Extract features
 ```
 
-📖 **Guide complet** : Voir [GETTING_STARTED.md](GETTING_STARTED.md) pour les instructions détaillées
+## Project Structure
 
----
+```
+.
+├── src/
+│   ├── scraping/              # TikTok scraping
+│   │   ├── tiktok_scraper.py
+│   │   └── data_validator.py
+│   └── features/              # Feature engineering
+│       ├── feature_extractor.py
+│       └── data_processor.py
+├── scripts/                   # Pipeline scripts
+│   ├── run_pipeline.py       # Complete pipeline
+│   ├── run_scraping.py       # TikTok scraping
+│   └── test_gemini.py        # Gemini analysis
+├── data/
+│   ├── raw/                  # TikTok data
+│   └── processed/            # Feature sets
+├── docs/
+│   ├── pipeline.md           # Pipeline documentation
+│   └── gemini_analysis/      # AI analysis results
+├── notebooks/                # Analysis notebooks
+│   ├── 01_feature_extraction_demo.ipynb
+│   └── 02_data_processing_demo.ipynb
+├── logs/                     # Pipeline logs
+├── requirements.txt
+└── README.md
+```
 
-## 🧠 Contexte
+## Documentation
 
-Virality Chat POC est un projet expérimental, conçu pour démontrer qu'il est possible de prédire (et d'expliquer) la viralité d'une vidéo TikTok en combinant :
+- [Pipeline Documentation](docs/pipeline.md): Complete pipeline details
+- [Feature Engineering](docs/feature_engineering.md): Feature documentation
+- [Gemini Analysis](docs/gemini_analysis/README.md): AI analysis details
 
-- Le scrapping automatisé de données publiques (via Apify ou équivalent)
-- L'analyse structurelle avancée des vidéos par une IA multimodale (Gemini API, Google)
-- Des méthodes de data engineering et machine learning accessibles (Python, pandas, scikit-learn, XGBoost…)
-- Un focus fort sur la création d'insights actionnables, la transparence des features utilisées, et la possibilité de générer du contenu éducatif/documentaire autour du process
+## Usage Examples
 
-Le projet s'inscrit à la fois comme preuve de compétence en data/IA (case study pour Upwork et réseaux), et comme prototype pour un futur produit SaaS intégré à l'application EditIA.
+### 1. Complete Pipeline
 
----
+Run the entire analysis pipeline:
 
-## 🎯 Objectifs
+```bash
+python scripts/run_pipeline.py \
+    --accounts @username1 @username2 \
+    --max-videos 50 \
+    --output-dir data/processed
+```
 
-- Montrer par l'exemple qu'on peut prédire la viralité de vidéos TikTok à partir de features extraites par IA
-- Documenter le process de bout en bout : scrapping, feature engineering, modélisation, interprétation, automatisation minimale
-- Créer du contenu de démonstration (étude de cas, tutoriels, vidéos, script TikTok/LinkedIn)
-- Préparer une base technique pour industrialiser/produire un outil plus avancé (score viralité, assistant IA, intégration EditIA…)
+Options:
 
----
+- `--accounts`: TikTok accounts to analyze
+- `--max-videos`: Maximum videos per account
+- `--skip-scraping`: Skip TikTok scraping
+- `--skip-gemini`: Skip Gemini analysis
+- `--output-dir`: Output directory
 
-## 🔗 Structure du projet
+### 2. Individual Components
 
-- `data/` : jeux de données scrappés, features extraites, etc.
-- `notebooks/` : notebooks Jupyter/Quarto de data exploration et ML
-- `src/` : scripts Python pour ETL, scrapping, ingestion, analyse
-- `streamlit_app/` : démo Streamlit (ou autre interface légère)
-- `reports/` : documentation, case study, résultats intermédiaires
-- `README.md` : documentation générale (ce fichier)
-- `docs/prd.md` : Product Requirements Document détaillant la vision, le scope, les user stories, les specs, la roadmap
+Run components separately:
 
----
+1. **TikTok Scraping**:
 
-## 🚀 Processus et Backlog
+```bash
+python scripts/run_scraping.py
+```
 
-Le projet se déroule en sprints de 10 jours :
+2. **Gemini Analysis**:
 
-1. Collecte des données (scrapping de comptes TikTok)
-2. Extraction des features (API Gemini, parsing des métadonnées)
-3. Exploration & modélisation rapide (notebook ML)
-4. Interprétation & génération d'insights
-5. Documentation, création de contenu, partage
+```bash
+python scripts/test_gemini.py
+```
 
-La méthodologie adoptée est 80-20 (priorité à l'impact, au livrable, à l'apprentissage).
+3. **Feature Extraction**:
 
----
+```bash
+python src/run_feature_extraction.py \
+    --raw-data data/raw/test_leaelui_100642.json \
+    --gemini-analysis docs/gemini_analysis \
+    --output-dir data/processed
+```
 
-## 📦 Livrables attendus
+## Output
 
-- 1 notebook/documentation (case study complet)
-- 1 démo publique ou privée (Streamlit/vidéo/screencast)
-- 1 script ou template réutilisable pour automatiser le process
-- 1 (ou plusieurs) contenus vidéo/texte pour portfolio, réseaux, ou onboarding client
+The pipeline generates:
 
----
+1. **Raw Data** (`data/raw/`):
 
-## 📝 Product Requirements Document (PRD)
+   - TikTok video metadata
+   - Profile information
+   - Engagement metrics
 
-Le PRD de ce projet, qui détaille la vision, la roadmap et toutes les spécifications, est disponible dans le fichier `docs/prd.md`.
+2. **AI Analysis** (`docs/gemini_analysis/`):
 
-Il inclut :
+   - Visual content analysis
+   - Engagement predictions
+   - Improvement suggestions
 
-- L'état de l'art ("state of the art") de la viralité TikTok
-- Les user stories
-- L'architecture cible (MVP puis scalable)
-- Les specs techniques, éthiques et data
+3. **Features** (`data/processed/`):
+   - Processed feature sets
+   - Validation metadata
+   - Processing logs
 
----
+## Development
 
-## 🛠️ Stack Technique
+1. Install development dependencies:
 
-- **Python 3.9+** : Langage principal
-- **pandas, numpy** : Manipulation des données
-- **scikit-learn, XGBoost** : Machine learning
-- **Streamlit** : Interface utilisateur
-- **Jupyter** : Notebooks d'exploration
-- **Plotly** : Visualisations interactives
-- **Apify** : Scraping TikTok
-- **Gemini API** : Analyse vidéo IA
+```bash
+pip install -r requirements-dev.txt
+```
 
----
+2. Run tests:
 
-## 📚 Documentation
+```bash
+# Run all tests
+pytest
 
-- [GETTING_STARTED.md](GETTING_STARTED.md) - Guide de démarrage complet
-- [docs/prd.md](docs/prd.md) - Product Requirements Document
-- [docs/development_guide.md](docs/development_guide.md) - Guide de développement
-- `notebooks/` - Notebooks d'exploration et de modélisation
+# Run with coverage
+pytest --cov=src
 
----
+# Run specific component
+pytest tests/features/
+```
 
-## 🤝 Contribution
+## Contributing
 
-Ce projet suit une approche de développement par phases :
+1. Fork the repository
+2. Create a feature branch
+3. Add tests for new functionality
+4. Ensure all tests pass
+5. Submit a pull request
 
-1. **Phase 1** : Foundation Sprint (Jours 1-2)
-2. **Phase 2** : Core MVP Sprint (Jours 3-5)
-3. **Phase 3** : Enhancement Sprint (Jours 6-8)
-4. **Phase 4** : Packaging Sprint (Jours 9-10)
+## License
 
-Voir [docs/development_guide.md](docs/development_guide.md) pour plus de détails.
-
----
-
-## 📬 Contact & License
-
-Projet initié par Jason Suarez (contact : [ajouter lien/contact])  
-Ce projet est open (showcase, inspiration, etc).  
-Voir LICENSE pour les conditions de réutilisation.
-
----
-
-Pour toute contribution, bug, question ou suggestion, ouvrez une issue ou contactez-moi directement.
+MIT License - see LICENSE file for details
