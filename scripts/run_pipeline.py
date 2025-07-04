@@ -115,19 +115,33 @@ def run_scraping_phase(accounts: List[str], max_videos: int, tracker: BatchTrack
             # Validate account data
             for result in account_results:
                 is_valid, errors = validator.validate_account(result)
+
                 if not is_valid:
-                    logger.error(
-                        f"❌ Account {account} failed validation: {', '.join(errors)}")
+                    # Check if there are critical errors
+                    if validator.has_critical_errors(errors):
+                        error_summary = validator.get_error_summary(errors)
+                        critical_errors = ', '.join(error_summary["critical"])
+                        logger.error(
+                            f"❌ Account {account} has critical errors: {critical_errors}")
+                        tracker.mark_account_failed(
+                            account, "scraping", f"Critical errors: {critical_errors}")
+                        continue
+
+                    # For validation errors, log as warning and continue
+                    error_summary = validator.get_error_summary(errors)
+                    validation_errors = ', '.join(error_summary["validation"])
+                    logger.warning(
+                        f"⚠️ Account {account} failed validation: {validation_errors}")
                     tracker.mark_account_failed(
-                        account, "scraping", f"Validation failed: {', '.join(errors)}")
+                        account, "scraping", f"Validation failed: {validation_errors}")
                     continue
 
                 # Filter valid videos
                 valid_videos = validator.filter_valid_videos(
                     result.get('videos', []))
                 if len(valid_videos) == 0:
-                    logger.error(
-                        f"❌ Account {account} has no valid videos after filtering")
+                    logger.warning(
+                        f"⚠️ Account {account} has no valid videos after filtering")
                     tracker.mark_account_failed(
                         account, "scraping", "No valid videos after filtering")
                     continue
@@ -140,7 +154,7 @@ def run_scraping_phase(accounts: List[str], max_videos: int, tracker: BatchTrack
 
         except Exception as e:
             error_msg = f"Scraping failed: {str(e)}"
-            logger.error(error_msg)
+            logger.error(f"❌ {error_msg}")
             tracker.mark_account_failed(account, "scraping", error_msg)
             continue
 
@@ -166,6 +180,7 @@ def run_gemini_phase(videos: List[Dict], account: str, tracker: BatchTracker):
         for video in videos:
             video_url = video.get("webVideoUrl")
             if not video_url:
+                logger.warning(f"⚠️ Skipping video without URL from {account}")
                 continue
 
             video_id = video_url.split("/")[-1]
@@ -182,10 +197,21 @@ def run_gemini_phase(videos: List[Dict], account: str, tracker: BatchTracker):
                 # Validate analysis result
                 is_valid, errors = validator.validate_gemini_analysis(result)
                 if not is_valid:
-                    logger.warning(
-                        f"❌ Analysis validation failed for video {video_id}: {', '.join(errors)}")
-                    tracker.log_error(
-                        account, "analysis", f"Validation failed for video {video_id}: {', '.join(errors)}")
+                    if validator.has_critical_errors(errors):
+                        error_summary = validator.get_error_summary(errors)
+                        critical_errors = ', '.join(error_summary["critical"])
+                        logger.error(
+                            f"❌ Critical analysis errors for video {video_id}: {critical_errors}")
+                        tracker.log_error(
+                            account, "analysis", f"Critical errors for video {video_id}: {critical_errors}")
+                    else:
+                        error_summary = validator.get_error_summary(errors)
+                        validation_errors = ', '.join(
+                            error_summary["validation"])
+                        logger.warning(
+                            f"⚠️ Analysis validation failed for video {video_id}: {validation_errors}")
+                        tracker.log_error(
+                            account, "analysis", f"Validation failed for video {video_id}: {validation_errors}")
                     continue
 
                 with open(output_file, 'w') as f:
@@ -194,7 +220,7 @@ def run_gemini_phase(videos: List[Dict], account: str, tracker: BatchTracker):
                 time.sleep(2)  # Rate limiting
             except Exception as e:
                 error_msg = f"Analysis failed for video {video_id}: {str(e)}"
-                logger.error(error_msg)
+                logger.error(f"❌ {error_msg}")
                 tracker.log_error(account, "analysis", error_msg)
                 # Continue with next video instead of failing completely
 
@@ -207,7 +233,7 @@ def run_gemini_phase(videos: List[Dict], account: str, tracker: BatchTracker):
 
     except Exception as e:
         error_msg = f"Gemini analysis failed: {str(e)}"
-        logger.error(error_msg)
+        logger.error(f"❌ {error_msg}")
         tracker.log_error(account, "analysis", error_msg)
         raise
 
@@ -259,9 +285,12 @@ def process_batch(
         # 1. Scraping Phase
         results = run_scraping_phase(
             accounts, args.videos_per_account, tracker)
+
+        # If no results from scraping, log and continue (don't fail the batch)
         if not results:
-            logger.error("❌ Scraping phase failed completely")
-            return False
+            logger.warning(
+                "⚠️ No valid accounts found in scraping phase, continuing with next batch")
+            return True  # Don't fail the batch, just continue
 
         # Save consolidated results
         raw_dir = Path("data") / "raw" / f"dataset_{args.dataset}"
@@ -283,7 +312,6 @@ def process_batch(
             json.dump(consolidated_data, f, indent=2)
 
         # 2. Gemini Analysis Phase
-        analysis_success = True
         for account in accounts:
             account_videos = [v for v in consolidated_data["videos"]
                               if v.get("authorMeta", {}).get("name") == account]
@@ -293,7 +321,6 @@ def process_batch(
                 except Exception as e:
                     logger.error(
                         f"❌ Gemini analysis failed for {account}: {str(e)}")
-                    analysis_success = False
                     # Mark account as failed to prevent infinite loop
                     tracker.mark_account_failed(
                         account, "analysis", f"Analysis failed: {str(e)}")
@@ -360,12 +387,11 @@ def main():
             # Get accounts from settings
             accounts_to_process = TIKTOK_ACCOUNTS
 
-        # Process in batches
+        # Process in batches - NO RETRY LOGIC to avoid costly retries
         total_processed = 0
-        max_attempts = 3  # Prevent infinite loops
-        attempt_count = 0
+        batch_count = 0
 
-        while total_processed < len(accounts_to_process) and attempt_count < max_attempts:
+        while total_processed < len(accounts_to_process):
             batch = tracker.get_next_batch(
                 accounts_to_process[total_processed:],
                 args.batch_size
@@ -375,15 +401,12 @@ def main():
                 logger.info("No more accounts to process")
                 break
 
-            logger.info(f"Processing batch {attempt_count + 1}: {batch}")
+            batch_count += 1
+            logger.info(f"Processing batch {batch_count}: {batch}")
 
-            if process_batch(batch, args, tracker):
-                total_processed += len(batch)
-                attempt_count = 0  # Reset attempt count on success
-            else:
-                attempt_count += 1
-                logger.warning(
-                    f"Batch failed, attempt {attempt_count}/{max_attempts}")
+            # Process batch without retry logic
+            process_batch(batch, args, tracker)
+            total_processed += len(batch)
 
             # Check if we've hit the video limit
             if total_processed * args.videos_per_account >= args.max_total_videos:
@@ -401,9 +424,7 @@ def main():
         for phase, count in summary['error_phases'].items():
             logger.info(f"  • {phase}: {count}")
 
-        if attempt_count >= max_attempts:
-            logger.warning(
-                f"⚠️  Stopped after {max_attempts} failed attempts to prevent infinite loop")
+        logger.info("✅ Pipeline completed successfully")
 
     except Exception as e:
         logger.error(f"❌ Pipeline failed: {str(e)}")
