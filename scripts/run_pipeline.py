@@ -8,6 +8,7 @@ Complete pipeline script for TikTok virality analysis:
 from src.features.data_processor import DataProcessor
 from src.scraping.tiktok_scraper import TikTokScraper
 import argparse
+import json
 import logging
 import sys
 import time
@@ -159,12 +160,14 @@ def main():
     output_dir.mkdir(parents=True, exist_ok=True)
 
     try:
+        # Initialize video_urls
+        video_urls = []
+
         # 1. Scraping Phase
         if not args.skip_scraping:
             results = run_scraping_phase(args.accounts, args.max_videos)
 
             # Extract video URLs for Gemini analysis
-            video_urls = []
             for result in results:
                 for video in result.get("videos", []):
                     video_urls.append(video.get("url"))

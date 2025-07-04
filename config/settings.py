@@ -1,5 +1,5 @@
 """
-Configuration settings for Virality Chat POC
+Global settings for the TikTok virality analysis project.
 """
 import os
 from pathlib import Path
@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-# Project paths
+# Project directories
 PROJECT_ROOT = Path(__file__).parent.parent
 DATA_DIR = PROJECT_ROOT / "data"
 RAW_DATA_DIR = DATA_DIR / "raw"
@@ -92,6 +92,7 @@ TEST_ACCOUNTS = [
     "@athenasol",             # Test secondaire - humour
     "@unefille.ia",           # Test tech - niche spécialisée
 ]
+MAX_VIDEOS_PER_ACCOUNT = 5  # Default number of videos to scrape
 
 # Feature Engineering
 GEMINI_MODEL = "gemini-pro-vision"
@@ -128,6 +129,6 @@ VISUAL_FEATURES = [
 STREAMLIT_PORT = 8501
 STREAMLIT_HOST = "localhost"
 
-# Logging Configuration
+# Logging configuration
 LOG_LEVEL = "INFO"
 LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
