@@ -86,4 +86,7 @@ Thumbs.db
 # Temporary files
 tmp/
 temp/
-*.tmp 
+*.tmp
+
+# Project specific
+.env 
