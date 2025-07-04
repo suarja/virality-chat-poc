@@ -3,9 +3,31 @@ TikTok Scraper using Apify API
 """
 import logging
 import time
+import os
+import sys
 from typing import List, Dict, Optional
-from apify_client import ApifyClient
-from config.settings import APIFY_API_TOKEN, RAW_DATA_DIR
+from pathlib import Path
+
+# Add project root to path
+project_root = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(project_root))
+
+try:
+    from apify_client import ApifyClient
+except ImportError:
+    ApifyClient = None
+    print("⚠️  apify-client not installed. Install with: pip install apify-client")
+
+# Import settings with fallback
+try:
+    from config.settings import APIFY_API_TOKEN, RAW_DATA_DIR
+except ImportError:
+    # Fallback configuration
+    from dotenv import load_dotenv
+    load_dotenv()
+    APIFY_API_TOKEN = os.getenv("APIFY_API_TOKEN")
+    RAW_DATA_DIR = project_root / "data" / "raw"
+    RAW_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +46,12 @@ class TikTokScraper:
         """
         self.api_token = api_token or APIFY_API_TOKEN
         if not self.api_token:
-            raise ValueError("Apify API token is required")
+            raise ValueError(
+                "Apify API token is required. Please set APIFY_API_TOKEN in .env file")
+
+        if ApifyClient is None:
+            raise ImportError(
+                "apify-client is required. Install with: pip install apify-client")
 
         self.client = ApifyClient(self.api_token)
 

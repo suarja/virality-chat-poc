@@ -29,13 +29,23 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")  # Backup option
 
 # Scraping Configuration
 TIKTOK_ACCOUNTS = [
-    # Add target TikTok accounts here
-    # Example: "@username1", "@username2"
+    "@leaelui",               # Danse, lifestyle, mainstream
+    "@athenasol",           # Humour, sketchs, pop culture
+    "@loupernaut",            # Voyage, curiosités, info grand public
+    "@unefille.ia",        # 🛑 Actu, Tutos, Outils IA 🛑
+    "@pastelcuisine",       # Food, couple, vie quotidienne (moyenne audience)
+    "@lindalys1_",
+    "@swarecito",  # 🛑 Data, IA, Automatisation 🛑
+    "@contiped",  # Je rénove vos piscine pour cet été🏝️🌊 N'hésitez pas a vous abonner✅🎯 humour❤️
+    # Recettes gourmandes et faibles en calories! 🍕 50 Suivis 144.9K Followers 717.4K J'aime
+    "@swiss_fit.cook",
+
+
 ]
 
 # Feature Engineering
 GEMINI_MODEL = "gemini-pro-vision"
-MAX_VIDEOS_PER_ACCOUNT = 50
+MAX_VIDEOS_PER_ACCOUNT = 35  # Optimisé selon research synthesis
 MIN_VIEWS_THRESHOLD = 1000
 
 # ML Configuration
@@ -43,12 +53,26 @@ RANDOM_STATE = 42
 TEST_SIZE = 0.2
 CV_FOLDS = 5
 
-# Virality Thresholds (to be adjusted based on data)
+# Virality Thresholds (basé sur research synthesis)
 VIRALITY_THRESHOLDS = {
-    "low": 10000,      # 10K views
-    "medium": 100000,  # 100K views
-    "high": 1000000,   # 1M views
+    "low": 10000,        # 10K views - micro-viral
+    "medium": 100000,    # 100K views - viral
+    "high": 1000000,     # 1M views - méga-viral
 }
+
+# Features prioritaires (research-based)
+PRIMARY_FEATURES = [
+    'view_count', 'like_count', 'comment_count', 'share_count',
+    'video_duration', 'hashtags_count', 'description_length',
+    'account_followers', 'account_verification', 'publish_hour',
+    'publish_day_of_week', 'trending_sound_usage'
+]
+
+VISUAL_FEATURES = [
+    'human_presence', 'face_count', 'movement_intensity',
+    'color_vibrancy', 'scene_changes', 'text_overlay_presence',
+    'lighting_quality', 'video_style'
+]
 
 # Streamlit Configuration
 STREAMLIT_PORT = 8501

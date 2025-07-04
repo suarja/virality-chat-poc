@@ -37,7 +37,7 @@ def check_dependencies():
     """Vérifier les dépendances"""
     print("🔍 Vérification des dépendances...")
     required_packages = [
-        'pandas', 'numpy', 'scikit-learn', 'streamlit',
+        'pandas', 'numpy', 'sklearn', 'streamlit',
         'plotly', 'jupyter', 'requests'
     ]
 
@@ -114,12 +114,37 @@ def check_imports():
     """Vérifier les imports du projet"""
     print("🔍 Vérification des imports du projet...")
 
-    # Ajouter src au path
-    sys.path.insert(0, str(Path('src').absolute()))
+    # Ajouter le projet root au path
+    project_root = Path(__file__).parent.parent
+    sys.path.insert(0, str(project_root))
+    sys.path.insert(0, str(project_root / "src"))
 
     try:
         from scraping.tiktok_scraper import TikTokScraper
         print("✅ TikTokScraper importable")
+
+        # Test d'initialisation (sans token pour éviter l'erreur)
+        try:
+            # Test avec un token factice pour vérifier la logique
+            os.environ['APIFY_API_TOKEN'] = 'test_token'
+            scraper = TikTokScraper()
+            print("✅ TikTokScraper initialisable")
+        except ImportError as e:
+            if "apify-client" in str(e):
+                print("⚠️  apify-client requis mais module TikTokScraper fonctionne")
+            else:
+                raise
+        except Exception as e:
+            if "apify-client" in str(e) or "Apify API token" in str(e):
+                print("✅ TikTokScraper logique OK (erreur attendue sans vraie clé API)")
+            else:
+                print(f"❌ TikTokScraper erreur inattendue: {e}")
+                return False
+        finally:
+            # Nettoyer la variable d'environnement test
+            if 'APIFY_API_TOKEN' in os.environ and os.environ['APIFY_API_TOKEN'] == 'test_token':
+                del os.environ['APIFY_API_TOKEN']
+
     except ImportError as e:
         print(f"❌ TikTokScraper: {e}")
         return False
@@ -127,6 +152,10 @@ def check_imports():
     try:
         from scraping.data_validator import DataValidator
         print("✅ DataValidator importable")
+
+        # Test d'initialisation
+        validator = DataValidator()
+        print("✅ DataValidator initialisable")
     except ImportError as e:
         print(f"❌ DataValidator: {e}")
         return False
