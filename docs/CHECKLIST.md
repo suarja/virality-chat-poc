@@ -126,11 +126,87 @@
 - [ ] Ajouter l'explication des features importantes
 - [ ] Commit : `git commit -m "🔮 Prediction functionality"`
 
----
+## 🔍 Phase 2.5 : Evaluation Framework Implementation (Jours 5-6)
 
-## 🔬 Phase 3 : Enhancement Sprint (Jours 6-8)
+### Jour 5 (Après-midi) : Setup Initial
 
-### Jour 6 : Features Avancées
+#### Configuration de l'Infrastructure d'Évaluation
+
+- [x] Documenter l'architecture d'évaluation
+- [x] Choisir les technologies (PydanticAI Evals, LangChain AgentEvals)
+- [x] Définir la structure des données d'évaluation
+- [x] Commit initial : `git commit -m "feat(eval): Add evaluation framework documentation"`
+
+#### Setup du Package Evaluator
+
+- [ ] Créer la structure du package evaluator
+  ```
+  evaluators/
+  ├── __init__.py
+  ├── base.py
+  ├── feature_extraction/
+  ├── prediction/
+  └── system/
+  ```
+- [ ] Implémenter la classe BaseEvaluator
+- [ ] Configurer les dépendances (requirements.txt)
+- [ ] Commit : `git commit -m "feat(eval): Setup evaluator package structure"`
+
+### Jour 6 (Matin) : Implémentation Core
+
+#### Feature Extraction Evaluator
+
+- [ ] Implémenter GeminiFeatureEvaluator
+- [ ] Ajouter les métriques de qualité
+- [ ] Créer les tests unitaires
+- [ ] Intégrer avec MLflow
+- [ ] Commit : `git commit -m "feat(eval): Implement feature extraction evaluator"`
+
+#### Prediction Quality Evaluator
+
+- [ ] Implémenter ViralityPredictionEvaluator
+- [ ] Ajouter les métriques de performance
+- [ ] Créer les tests unitaires
+- [ ] Intégrer avec W&B
+- [ ] Commit : `git commit -m "feat(eval): Implement prediction evaluator"`
+
+#### System Performance Evaluator
+
+- [ ] Implémenter SystemPerformanceEvaluator
+- [ ] Ajouter le monitoring des ressources
+- [ ] Créer les tests unitaires
+- [ ] Configurer les alertes
+- [ ] Commit : `git commit -m "feat(eval): Implement system evaluator"`
+
+### Jour 6 (Après-midi) : Integration & Testing
+
+#### Pipeline d'Évaluation
+
+- [ ] Créer le pipeline d'évaluation automatisé
+- [ ] Implémenter la validation continue
+- [ ] Ajouter la génération de rapports
+- [ ] Intégrer avec CI/CD
+- [ ] Commit : `git commit -m "feat(eval): Setup evaluation pipeline"`
+
+#### Tests et Documentation
+
+- [ ] Écrire les tests d'intégration
+- [ ] Créer la documentation utilisateur
+- [ ] Ajouter des exemples d'utilisation
+- [ ] Mettre à jour le README
+- [ ] Commit : `git commit -m "docs(eval): Add evaluation documentation and examples"`
+
+#### Validation et Métriques
+
+- [ ] Définir les seuils de qualité
+- [ ] Configurer les dashboards
+- [ ] Tester avec des données réelles
+- [ ] Valider les résultats
+- [ ] Commit : `git commit -m "feat(eval): Add quality thresholds and dashboards"`
+
+## 🔬 Phase 3 : Enhancement Sprint (Jours 7-9)
+
+### Jour 7 : Features Avancées
 
 #### Intégration Gemini API
 
@@ -148,7 +224,7 @@
 - [ ] Valider avec cross-validation
 - [ ] Commit : `git commit -m "📈 Model improvements"`
 
-### Jour 7 : Interprétabilité
+### Jour 8 : Interprétabilité
 
 #### Analyse SHAP
 
@@ -166,7 +242,7 @@
 - [ ] Créer des visualisations business
 - [ ] Commit : `git commit -m "💡 Business insights"`
 
-### Jour 8 : Optimisation
+### Jour 9 : Optimisation
 
 #### Performance et UX
 
@@ -186,9 +262,9 @@
 
 ---
 
-## 📦 Phase 4 : Packaging Sprint (Jours 9-10)
+## 📦 Phase 4 : Packaging Sprint (Jours 10-11)
 
-### Jour 9 : Documentation
+### Jour 10 : Documentation
 
 #### Documentation complète
 
@@ -206,7 +282,7 @@
 - [ ] Préparer le contenu pour LinkedIn/TikTok
 - [ ] Commit : `git commit -m "🎬 Demo content"`
 
-### Jour 10 : Finalisation
+### Jour 11 : Finalisation
 
 #### Nettoyage et polish
 
