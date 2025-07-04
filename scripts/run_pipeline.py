@@ -175,8 +175,8 @@ def main():
                         logger.error(
                             f"Account {result.get('username', 'Unknown')} has no videos")
                         sys.exit(1)
-                    if video.get("url"):  # Only add valid URLs
-                        video_urls.append(video.get("url"))
+                    if video.get("webVideoUrl"):  # Use webVideoUrl instead of url
+                        video_urls.append(video.get("webVideoUrl"))
 
             # Use the newly scraped data
             raw_data_path = next(Path("data/raw").glob("tiktok_*.json"))
@@ -203,8 +203,8 @@ def main():
                             logger.error(
                                 f"Account {data.get('username', 'Unknown')} has no videos")
                             sys.exit(1)
-                        if video.get("url"):  # Only add valid URLs
-                            video_urls.append(video.get("url"))
+                        if video.get("webVideoUrl"):  # Use webVideoUrl instead of url
+                            video_urls.append(video.get("webVideoUrl"))
 
                 if not video_urls:
                     logger.error(
