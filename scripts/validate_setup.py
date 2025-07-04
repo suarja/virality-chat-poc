@@ -38,13 +38,19 @@ def check_dependencies():
     print("🔍 Vérification des dépendances...")
     required_packages = [
         'pandas', 'numpy', 'sklearn', 'streamlit',
-        'plotly', 'jupyter', 'requests'
+        'plotly', 'jupyter', 'requests', 'google.generativeai',
+        'dotenv'
     ]
 
     missing_packages = []
     for package in required_packages:
         try:
-            __import__(package)
+            if package == 'google.generativeai':
+                import google.generativeai
+            elif package == 'dotenv':
+                from dotenv import load_dotenv
+            else:
+                __import__(package.replace('-', '_'))
             print(f"✅ {package} OK")
         except ImportError:
             print(f"❌ {package} manquant")
@@ -63,7 +69,8 @@ def check_project_structure():
     required_dirs = [
         'data/raw', 'data/processed', 'data/external',
         'notebooks', 'src/scraping', 'src/features', 'src/models',
-        'streamlit_app', 'config', 'logs', 'reports'
+        'streamlit_app', 'config', 'logs', 'reports',
+        'docs/gemini_analysis'  # New required directory
     ]
 
     missing_dirs = []
@@ -91,10 +98,19 @@ def check_config_files():
         # Vérifier le contenu du .env
         with open('.env', 'r') as f:
             content = f.read()
-            if 'APIFY_API_TOKEN=' in content and 'GEMINI_API_KEY=' in content:
-                print("✅ Clés API configurées dans .env")
-            else:
-                print("⚠️  Clés API à configurer dans .env")
+            api_keys = {
+                'APIFY_API_TOKEN': 'Apify',
+                'GOOGLE_API_KEY': 'Gemini'
+            }
+            all_keys_present = True
+            for key, service in api_keys.items():
+                if f'{key}=' in content:
+                    print(f"✅ Clé API {service} configurée dans .env")
+                else:
+                    print(f"⚠️  Clé API {service} manquante dans .env")
+                    all_keys_present = False
+            if not all_keys_present:
+                return False
     else:
         print("❌ .env manquant")
         print("💡 Copiez env.template vers .env et configurez vos clés API")
@@ -149,6 +165,30 @@ def check_imports():
         print(f"❌ TikTokScraper: {e}")
         return False
 
+    # Test Gemini import and initialization
+    try:
+        import google.generativeai as genai
+        print("✅ Gemini AI importable")
+
+        # Test initialization with dummy key
+        try:
+            os.environ['GOOGLE_API_KEY'] = 'test_key'
+            genai.configure(api_key='test_key')
+            print("✅ Gemini AI initialisable")
+        except Exception as e:
+            if "invalid api key" in str(e).lower():
+                print("✅ Gemini AI logique OK (erreur attendue sans vraie clé API)")
+            else:
+                print(f"❌ Gemini AI erreur inattendue: {e}")
+                return False
+        finally:
+            if 'GOOGLE_API_KEY' in os.environ and os.environ['GOOGLE_API_KEY'] == 'test_key':
+                del os.environ['GOOGLE_API_KEY']
+
+    except ImportError as e:
+        print(f"❌ Gemini AI: {e}")
+        return False
+
     try:
         from scraping.data_validator import DataValidator
         print("✅ DataValidator importable")
@@ -197,6 +237,28 @@ def check_streamlit():
         return False
 
 
+def check_documentation():
+    """Vérifier la documentation"""
+    print("🔍 Vérification de la documentation...")
+    required_docs = [
+        'README.md',
+        'docs/gemini_analysis.md'
+    ]
+
+    missing_docs = []
+    for doc_path in required_docs:
+        if Path(doc_path).exists():
+            print(f"✅ {doc_path} OK")
+        else:
+            print(f"❌ {doc_path} manquant")
+            missing_docs.append(doc_path)
+
+    if missing_docs:
+        print("💡 Exécutez: python scripts/setup_project.py")
+        return False
+    return True
+
+
 def main():
     """Fonction principale de validation"""
     print("🚀 Validation de la configuration du projet Virality Chat POC")
@@ -210,7 +272,8 @@ def main():
         check_dependencies,
         check_imports,
         check_jupyter,
-        check_streamlit
+        check_streamlit,
+        check_documentation  # New check
     ]
 
     results = []
@@ -235,8 +298,9 @@ def main():
         print(f"🎉 SUCCÈS! Toutes les vérifications passées ({passed}/{total})")
         print("\n🎯 Prochaines étapes:")
         print("1. Configurer les comptes TikTok dans config/settings.py")
-        print("2. Lancer Jupyter: jupyter notebook notebooks/01_data_exploration.ipynb")
-        print("3. Tester Streamlit: streamlit run streamlit_app/app.py")
+        print("2. Tester Gemini: python test_gemini.py")
+        print("3. Lancer Jupyter: jupyter notebook notebooks/01_data_exploration.ipynb")
+        print("4. Tester Streamlit: streamlit run streamlit_app/app.py")
         return True
     else:
         print(
