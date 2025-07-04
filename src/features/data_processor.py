@@ -8,38 +8,8 @@ from typing import Dict, List, Optional, Tuple, Any, Union
 from datetime import datetime
 
 import pandas as pd
-from .feature_extractor import FeatureExtractor
-from pydantic import BaseModel, Field, validator, model_validator
 
 logger = logging.getLogger(__name__)
-
-
-class RawDataSchema(BaseModel):
-    """Schema for raw TikTok data validation."""
-    videos: List[Dict] = Field(..., description="List of video data")
-    scraped_at: Union[str, float] = Field(...,
-                                          description="Timestamp of data collection")
-    username: str = Field(...,
-                          description="TikTok account name")
-
-    class Config:
-        validate_by_name = True
-        extra = "allow"
-
-    @validator('scraped_at')
-    def validate_timestamp(cls, v):
-        if isinstance(v, float):
-            return datetime.fromtimestamp(v).isoformat()
-        return v
-
-    @model_validator(mode='before')
-    def map_username_to_account(cls, values):
-        if isinstance(values, dict):
-            if 'account' not in values and 'username' in values:
-                values['account'] = values['username']
-            elif 'username' not in values and 'account' in values:
-                values['username'] = values['account']
-        return values
 
 
 class DataProcessor:
@@ -47,14 +17,8 @@ class DataProcessor:
     Process and combine TikTok data with Gemini analysis
     """
 
-    def __init__(self, feature_extractor: Optional[FeatureExtractor] = None):
-        """
-        Initialize data processor.
-
-        Args:
-            feature_extractor: Optional FeatureExtractor instance
-        """
-        self.feature_extractor = feature_extractor or FeatureExtractor()
+    def __init__(self):
+        """Initialize data processor."""
         logger.info("Initializing DataProcessor")
 
     def load_raw_data(self, raw_data_path: Union[str, Path]) -> Dict:
@@ -83,14 +47,19 @@ class DataProcessor:
             with raw_data_path.open('r') as f:
                 data = json.load(f)
 
-            # Validate data structure
-            validated_data = RawDataSchema(**data).dict()
+            # Basic validation
+            if not isinstance(data, dict):
+                raise ValueError("Data must be a dictionary")
+            if 'videos' not in data:
+                raise ValueError("Data must contain 'videos' key")
+            if not isinstance(data['videos'], list):
+                raise ValueError("'videos' must be a list")
 
-            video_count = len(validated_data['videos'])
+            video_count = len(data['videos'])
             logger.info(
-                f"Loaded {video_count} videos from {validated_data['username']}")
+                f"Loaded {video_count} videos from {data.get('username', 'unknown')}")
 
-            return validated_data
+            return data
 
         except json.JSONDecodeError as e:
             logger.error(f"Failed to parse JSON from {raw_data_path}: {e}")
@@ -163,67 +132,55 @@ class DataProcessor:
             logger.error(f"Error loading Gemini analysis: {e}")
             raise
 
-    def extract_gemini_features(self, analysis: Dict) -> Dict:
-        """
-        Extract features from Gemini analysis.
+    def extract_features(self, video_data: Dict) -> Dict:
+        """Extract basic features from video data."""
+        features = {
+            'title': video_data.get('text', ''),
+            'description': video_data.get('text', ''),
+            'duration': video_data.get('videoMeta', {}).get('duration', 0),
+            'post_time': video_data.get('createTimeISO', ''),
+            'extraction_time': datetime.now().isoformat(),
+            'view_count': video_data.get('playCount', 0),
+            'like_count': video_data.get('diggCount', 0),
+            'comment_count': video_data.get('commentCount', 0),
+            'share_count': video_data.get('shareCount', 0),
+        }
 
-        Args:
-            analysis: Gemini analysis dictionary
+        # Calculate engagement rates
+        if features['view_count'] > 0:
+            features['like_rate'] = features['like_count'] / \
+                features['view_count']
+            features['comment_rate'] = features['comment_count'] / \
+                features['view_count']
+            features['share_rate'] = features['share_count'] / \
+                features['view_count']
+            features['engagement_rate'] = (features['like_count'] + features['comment_count'] +
+                                           features['share_count']) / features['view_count']
+        else:
+            features['like_rate'] = 0
+            features['comment_rate'] = 0
+            features['share_rate'] = 0
+            features['engagement_rate'] = 0
 
-        Returns:
-            Dictionary of extracted features
-        """
-        features = {}
+        # Extract hashtags
+        hashtags = [tag['name'] for tag in video_data.get('hashtags', [])]
+        features['hashtags'] = ','.join(hashtags)
+        features['hashtag_count'] = len(hashtags)
 
-        try:
-            # Visual Analysis Features
-            visual = analysis.get('visual_analysis', {})
-            features['has_text_overlays'] = 'text overlays' in visual.get(
-                'text_overlays', '').lower()
-            features['has_transitions'] = 'transitions' in visual.get(
-                'transitions', '').lower()
-            features['visual_quality_score'] = 1.0 if 'high quality' in visual.get(
-                'style_quality', '').lower() else 0.5
+        # Extract music info
+        music_meta = video_data.get('musicMeta', {})
+        features['music_info'] = f"{music_meta.get('musicAuthor', '')} - {music_meta.get('musicName', '')}"
 
-            # Content Structure Features
-            content = analysis.get('content_structure', {})
-            features['has_hook'] = 1.0 if 'effective' in content.get(
-                'hook_effectiveness', '').lower() else 0.5
-            features['has_story'] = 'story' in content.get(
-                'story_flow', '').lower()
-            features['has_call_to_action'] = 'call to action' in content.get(
-                'call_to_action', '').lower()
+        # Extract temporal features
+        if features['post_time']:
+            post_time = pd.to_datetime(features['post_time'])
+            features['hour_of_day'] = post_time.hour
+            features['day_of_week'] = post_time.dayofweek
+            features['month'] = post_time.month
+            features['is_weekend'] = post_time.dayofweek >= 5
+            features['is_business_hours'] = 9 <= post_time.hour <= 17
 
-            # Engagement Features
-            engagement = analysis.get('engagement_factors', {})
-            features['viral_potential_score'] = 1.0 if 'high' in engagement.get(
-                'viral_potential', '').lower() else 0.5
-            features['emotional_trigger_count'] = len(
-                engagement.get('emotional_triggers', '').split(','))
-            features['audience_connection_score'] = 1.0 if 'strong' in engagement.get(
-                'audience_connection', '').lower() else 0.5
-
-            # Technical Features
-            technical = analysis.get('technical_elements', {})
-            features['length_optimized'] = 'appropriate' in technical.get(
-                'length_optimization', '').lower()
-            features['sound_quality_score'] = 1.0 if 'high quality' in technical.get(
-                'sound_design', '').lower() else 0.5
-            features['production_quality_score'] = 1.0 if 'high' in technical.get(
-                'production_quality', '').lower() else 0.5
-
-            # Trend Features
-            trends = analysis.get('trend_alignment', {})
-            features['trend_alignment_score'] = 1.0 if 'perfectly' in trends.get(
-                'current_trends', '').lower() else 0.5
-            features['estimated_hashtag_count'] = len(
-                trends.get('hashtag_potential', '').split('#')) - 1
-
-            return features
-
-        except Exception as e:
-            logger.error(f"Error extracting Gemini features: {str(e)}")
-            raise
+        return features
 
     def process_video(
         self,
@@ -239,7 +196,7 @@ class DataProcessor:
                 return {}, {"is_valid": False, "error": "Missing video ID"}
 
             # Extract basic features
-            features = self.feature_extractor.extract_features(video_data)
+            features = self.extract_features(video_data)
             features['video_id'] = video_id
 
             # Add Gemini analysis features if available
@@ -331,3 +288,57 @@ class DataProcessor:
         except Exception as e:
             logger.error(f"Error processing dataset: {e}")
             raise
+
+    def extract_gemini_features(self, analysis: Dict) -> Dict:
+        """Extract features from Gemini analysis."""
+        features = {}
+
+        try:
+            # Visual Analysis Features
+            visual = analysis.get('visual_analysis', {})
+            features['has_text_overlays'] = 'text overlays' in visual.get(
+                'text_overlays', '').lower()
+            features['has_transitions'] = 'transitions' in visual.get(
+                'transitions', '').lower()
+            features['visual_quality_score'] = 1.0 if 'high quality' in visual.get(
+                'style_quality', '').lower() else 0.5
+
+            # Content Structure Features
+            content = analysis.get('content_structure', {})
+            features['has_hook'] = 1.0 if 'effective' in content.get(
+                'hook_effectiveness', '').lower() else 0.5
+            features['has_story'] = 'story' in content.get(
+                'story_flow', '').lower()
+            features['has_call_to_action'] = 'call to action' in content.get(
+                'call_to_action', '').lower()
+
+            # Engagement Features
+            engagement = analysis.get('engagement_factors', {})
+            features['viral_potential_score'] = 1.0 if 'high' in engagement.get(
+                'viral_potential', '').lower() else 0.5
+            features['emotional_trigger_count'] = len(
+                engagement.get('emotional_triggers', '').split(','))
+            features['audience_connection_score'] = 1.0 if 'strong' in engagement.get(
+                'audience_connection', '').lower() else 0.5
+
+            # Technical Features
+            technical = analysis.get('technical_elements', {})
+            features['length_optimized'] = 'appropriate' in technical.get(
+                'length_optimization', '').lower()
+            features['sound_quality_score'] = 1.0 if 'high quality' in technical.get(
+                'sound_design', '').lower() else 0.5
+            features['production_quality_score'] = 1.0 if 'high' in technical.get(
+                'production_quality', '').lower() else 0.5
+
+            # Trend Features
+            trends = analysis.get('trend_alignment', {})
+            features['trend_alignment_score'] = 1.0 if 'perfectly' in trends.get(
+                'current_trends', '').lower() else 0.5
+            features['estimated_hashtag_count'] = len(
+                trends.get('hashtag_potential', '').split('#')) - 1
+
+            return features
+
+        except Exception as e:
+            logger.error(f"Error extracting Gemini features: {str(e)}")
+            return {}
