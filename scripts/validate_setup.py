@@ -39,7 +39,7 @@ def check_dependencies():
     required_packages = [
         'pandas', 'numpy', 'sklearn', 'streamlit',
         'plotly', 'jupyter', 'requests', 'google.generativeai',
-        'dotenv'
+        'dotenv', 'mlflow', 'pydantic'
     ]
 
     missing_packages = []
@@ -68,9 +68,11 @@ def check_project_structure():
     print("🔍 Vérification de la structure du projet...")
     required_dirs = [
         'data/raw', 'data/processed', 'data/external',
+        'data/evaluation', 'data/evaluation/metrics',
+        'data/evaluation/reports',
         'notebooks', 'src/scraping', 'src/features', 'src/models',
         'streamlit_app', 'config', 'logs', 'reports',
-        'docs/gemini_analysis'  # New required directory
+        'docs/gemini_analysis', 'docs/evaluation'
     ]
 
     missing_dirs = []
@@ -200,6 +202,38 @@ def check_imports():
         print(f"❌ DataValidator: {e}")
         return False
 
+    # Check evaluation modules
+    try:
+        from features.evaluation import evaluate_feature_extraction
+        print("✅ Feature evaluation importable")
+    except ImportError as e:
+        print(f"❌ Feature evaluation: {e}")
+        return False
+
+    try:
+        from models.evaluation import evaluate_predictions
+        print("✅ Model evaluation importable")
+    except ImportError as e:
+        print(f"❌ Model evaluation: {e}")
+        return False
+
+    # Check MLflow
+    try:
+        import mlflow
+        print("✅ MLflow importable")
+
+        # Test MLflow initialization
+        try:
+            mlflow.set_tracking_uri("file:./mlruns")
+            print("✅ MLflow tracking configurable")
+        except Exception as e:
+            print(f"❌ MLflow configuration error: {e}")
+            return False
+
+    except ImportError as e:
+        print(f"❌ MLflow: {e}")
+        return False
+
     return True
 
 
@@ -242,7 +276,8 @@ def check_documentation():
     print("🔍 Vérification de la documentation...")
     required_docs = [
         'README.md',
-        'docs/gemini_analysis.md'
+        'docs/gemini_analysis.md',
+        'docs/evaluation/README.md'
     ]
 
     missing_docs = []
@@ -273,7 +308,7 @@ def main():
         check_imports,
         check_jupyter,
         check_streamlit,
-        check_documentation  # New check
+        check_documentation
     ]
 
     results = []

@@ -14,11 +14,15 @@ def create_directories():
         "data/raw",
         "data/processed",
         "data/external",
+        "data/evaluation",  # New: for evaluation results
+        "data/evaluation/metrics",  # New: for storing evaluation metrics
+        "data/evaluation/reports",  # New: for evaluation reports
         "models",
         "logs",
         "reports/generated",
         "reports/templates",
-        "docs/gemini_analysis"  # New directory for Gemini analysis results
+        "docs/gemini_analysis",
+        "docs/evaluation"  # New: for evaluation documentation
     ]
 
     for directory in directories:
@@ -105,7 +109,36 @@ def setup_documentation():
             f.write("- Video analysis with Gemini AI\n")
             f.write("- Virality prediction\n")
             f.write("- Interactive dashboard\n")
+            f.write("- Quality evaluation and metrics tracking\n")  # New feature
         print("✓ Created README.md")
+
+    # Create evaluation documentation
+    eval_docs_path = docs_path / "evaluation"
+    eval_docs_path.mkdir(exist_ok=True)
+
+    eval_readme_path = eval_docs_path / "README.md"
+    if not eval_readme_path.exists():
+        with open(eval_readme_path, "w") as f:
+            f.write("# Quality Evaluation Framework\n\n")
+            f.write("## Overview\n")
+            f.write(
+                "This framework provides comprehensive evaluation of feature extraction and model predictions.\n\n")
+            f.write("## Components\n\n")
+            f.write("### Feature Extraction Evaluation\n")
+            f.write("- Completeness metrics\n")
+            f.write("- Accuracy assessment\n")
+            f.write("- Performance tracking\n\n")
+            f.write("### Model Prediction Evaluation\n")
+            f.write("- Accuracy metrics\n")
+            f.write("- Precision and recall\n")
+            f.write("- F1 score tracking\n\n")
+            f.write("## Usage\n")
+            f.write(
+                "1. Feature evaluation is integrated in src/features/evaluation.py\n")
+            f.write("2. Model evaluation is integrated in src/models/evaluation.py\n")
+            f.write("3. Results are stored in data/evaluation/\n")
+            f.write("4. Metrics are tracked with MLflow\n")
+        print("✓ Created evaluation documentation")
 
     # Create Gemini documentation
     gemini_docs_path = docs_path / "gemini_analysis.md"
