@@ -12,13 +12,13 @@ load_dotenv()
 GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
 genai.configure(api_key=GOOGLE_API_KEY)
 
-# Initialize Gemini Pro Vision model
-model = genai.GenerativeModel('gemini-pro-vision')
+# Initialize Gemini 2.0 Flash model
+model = genai.GenerativeModel('gemini-2.0-flash')
 
 
 def analyze_tiktok_video(video_url: str) -> Dict[str, Any]:
     """
-    Analyze a TikTok video using Gemini Pro Vision.
+    Analyze a TikTok video using Gemini 2.0 Flash.
 
     Args:
         video_url: Direct URL to TikTok video
@@ -110,7 +110,7 @@ def main():
             print(f"- Output Tokens: {result['model_usage']['output_tokens']}")
 
             # Save results to file
-            output_file = f"video_{i}_analysis.json"
+            output_file = f"docs/gemini_analysis/video_{i}_analysis.json"
             with open(output_file, 'w') as f:
                 json.dump(result['analysis'], f, indent=2)
             print(f"\n💾 Results saved to {output_file}")
