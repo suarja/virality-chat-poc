@@ -1,0 +1,48 @@
+# Core Data Science
+pandas>=2.0.0
+numpy>=1.24.0
+scipy>=1.10.0
+
+# Machine Learning
+scikit-learn>=1.3.0
+xgboost>=1.7.0
+shap>=0.42.0
+optuna>=3.3.0
+
+# Data Storage & Processing
+duckdb>=0.8.0
+requests>=2.31.0
+python-dotenv>=1.0.0
+
+# Visualization
+matplotlib>=3.7.0
+seaborn>=0.12.0
+plotly>=5.15.0
+altair>=5.0.0
+
+# Web Scraping & APIs
+apify-client>=1.4.0
+google-generativeai>=0.3.0
+beautifulsoup4>=4.12.0
+
+# Demo & Interface
+streamlit>=1.25.0
+gradio>=3.40.0
+fastapi>=0.100.0
+uvicorn>=0.23.0
+
+# Documentation & Reporting
+jupyter>=1.0.0
+jupyterlab>=4.0.0
+quarto>=0.1.0
+nbformat>=5.9.0
+
+# Development Tools
+pytest>=7.4.0
+black>=23.7.0
+flake8>=6.0.0
+isort>=5.12.0
+
+# Deployment (optional)
+gunicorn>=21.2.0
+python-multipart>=0.0.6 
