@@ -122,7 +122,8 @@ class DataProcessor:
 
         try:
             analyses = {}
-            analysis_files = list(analysis_dir.glob('video_*_analysis_*.json'))
+            # Update pattern to match new filename format
+            analysis_files = list(analysis_dir.glob('video_*_analysis.json'))
 
             if not analysis_files:
                 raise ValueError(f"No analysis files found in {analysis_dir}")
@@ -132,8 +133,14 @@ class DataProcessor:
                     with file_path.open('r') as f:
                         analysis_data = json.load(f)
 
-                    # Extract video ID from filename
+                    # Extract video ID from filename (new format)
+                    # Now directly the TikTok video ID
                     video_id = file_path.stem.split('_')[1]
+
+                    if not analysis_data.get('success'):
+                        logger.warning(
+                            f"Analysis unsuccessful for video {video_id}")
+                        continue
 
                     if 'analysis' not in analysis_data:
                         logger.warning(
@@ -223,75 +230,37 @@ class DataProcessor:
         video_data: Dict,
         gemini_analysis: Optional[Dict] = None
     ) -> Tuple[Dict, Dict]:
-        """
-        Process a single video, combining TikTok data with Gemini analysis.
-
-        Args:
-            video_data: Raw video data dictionary
-            gemini_analysis: Optional Gemini analysis dictionary
-
-        Returns:
-            Tuple of (combined features dict, metadata dict)
-        """
+        """Process a single video's data and analysis."""
         try:
-            # Start metadata tracking
-            metadata = {
-                'video_id': video_data.get('id'),
-                'features_extracted': [],
-                'extraction_start': pd.Timestamp.now().isoformat(),
-                'warnings': []
-            }
+            # Extract video ID
+            video_id = str(video_data.get('id'))
+            if not video_id:
+                logger.warning("Video missing ID, skipping")
+                return {}, {"is_valid": False, "error": "Missing video ID"}
 
             # Extract basic features
-            features = {}
-            features.update(
-                self.feature_extractor.extract_basic_features(video_data))
-            metadata['features_extracted'].append('basic')
+            features = self.feature_extractor.extract_features(video_data)
+            features['video_id'] = video_id
 
-            # Extract engagement features
-            features.update(
-                self.feature_extractor.extract_engagement_features(video_data))
-            metadata['features_extracted'].append('engagement')
-
-            # Calculate engagement ratios
-            features.update(
-                self.feature_extractor.calculate_engagement_ratios(features))
-            metadata['features_extracted'].append('ratios')
-
-            # Extract content features
-            features.update(
-                self.feature_extractor.extract_content_features(video_data))
-            metadata['features_extracted'].append('content')
-
-            # Extract temporal features
-            features.update(self.feature_extractor.extract_temporal_features(
-                pd.Timestamp(video_data.get('createTime', 0), unit='s')
-            ))
-            metadata['features_extracted'].append('temporal')
-
-            # Add Gemini features if available
+            # Add Gemini analysis features if available
             if gemini_analysis:
-                try:
-                    gemini_features = self.extract_gemini_features(
-                        gemini_analysis)
-                    features.update(gemini_features)
-                    metadata['features_extracted'].append('gemini_analysis')
-                except Exception as e:
-                    metadata['warnings'].append(
-                        f"Gemini feature extraction failed: {str(e)}")
+                gemini_features = self.extract_gemini_features(gemini_analysis)
+                features.update(gemini_features)
+            else:
+                logger.warning(
+                    f"No Gemini analysis found for video {video_id}")
 
-            # Update metadata
-            metadata['extraction_time_ms'] = (
-                pd.Timestamp.now() - pd.Timestamp(metadata['extraction_start'])
-            ).total_seconds() * 1000
-            metadata['is_valid'] = len(metadata['warnings']) == 0
+            metadata = {
+                "is_valid": True,
+                "video_id": video_id,
+                "processed_at": datetime.now().isoformat()
+            }
 
             return features, metadata
 
         except Exception as e:
-            logger.error(
-                f"Error processing video {video_data.get('id')}: {str(e)}")
-            raise
+            logger.error(f"Error processing video: {e}")
+            return {}, {"is_valid": False, "error": str(e)}
 
     def process_dataset(
         self,

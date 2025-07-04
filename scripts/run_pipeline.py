@@ -97,7 +97,7 @@ def run_gemini_phase(video_urls: list):
     try:
         from scripts.test_gemini import analyze_tiktok_video
 
-        analysis_dir = Path("docs/gemini_analysis")
+        analysis_dir = Path("data/gemini_analysis")
         analysis_dir.mkdir(parents=True, exist_ok=True)
 
         for i, url in enumerate(video_urls, 1):
@@ -106,8 +106,8 @@ def run_gemini_phase(video_urls: list):
             result = analyze_tiktok_video(url)
 
             # Save analysis
-            output_file = analysis_dir / \
-                f"video_{i}_analysis_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+            video_id = url.split("/")[-1]
+            output_file = analysis_dir / f"video_{video_id}_analysis.json"
             with open(output_file, 'w') as f:
                 json.dump(result, f, indent=2)
 
@@ -229,7 +229,7 @@ def main():
             sys.exit(1)
 
         # 3. Feature Extraction Phase
-        gemini_dir = Path("docs/gemini_analysis")
+        gemini_dir = Path("data/gemini_analysis")
 
         features_df, metadata_list = run_feature_extraction_phase(
             raw_data_path=raw_data_path,
