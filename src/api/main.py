@@ -8,6 +8,7 @@
 📚 Documentation: https://railway.app/docs
 🔗 OpenAPI: /docs
 """
+from .tiktok_scraper_integration import tiktok_scraper_integration
 from .tiktok_analyzer import tiktok_analyzer
 from .feature_integration import feature_manager
 from .ml_model import ml_manager
@@ -17,6 +18,9 @@ from pydantic import BaseModel
 from typing import Dict, List, Optional, Any
 import json
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Configuration FastAPI
 app = FastAPI(
@@ -56,6 +60,12 @@ class FeatureExtraction(BaseModel):
 class TikTokURLRequest(BaseModel):
     url: str
     description: str = "URL de la vidéo TikTok à analyser"
+
+
+class TikTokProfileRequest(BaseModel):
+    username: str
+    max_videos: int = 10
+    description: str = "Nom d'utilisateur TikTok à analyser"
 
 
 class TikTokAnalysis(BaseModel):
@@ -116,6 +126,7 @@ async def health_check():
         "feature_extractor_loaded": ml_manager.feature_extractor is not None,
         "feature_system_available": feature_manager.is_available(),
         "features_count": feature_manager.get_feature_count(),
+        "tiktok_scraper_available": tiktok_scraper_integration.is_available(),
         "environment": os.getenv("RAILWAY_ENVIRONMENT", "development")
     }
 
@@ -137,6 +148,7 @@ async def api_info():
             "extract_features": "/extract-features - Extraction des features",
             "predict": "/predict - Prédiction de viralité",
             "analyze_tiktok_url": "/analyze-tiktok-url - Analyse vidéo TikTok via URL",
+            "analyze_tiktok_profile": "/analyze-tiktok-profile - Analyse profil TikTok",
             "analyze": "/analyze - Pipeline complet upload vidéo"
         },
         "documentation": {
@@ -206,21 +218,19 @@ async def analyze_tiktok_url(request: TikTokURLRequest):
     """
     🎯 DDD Phase 4: Analyse de vidéo TikTok via URL
 
-    Pipeline complet: URL TikTok → extraction données → features → prédiction
-    Utilise le système de features modulaire et l'analyse Gemini.
+    Pipeline complet: URL TikTok → scraping réel → features → prédiction
+    Utilise le vrai scraper Apify et le système de features modulaire.
     """
     import time
     start_time = time.time()
 
     try:
-        # 1. Analyse de la vidéo TikTok
-        analysis_result = tiktok_analyzer.analyze_video(request.url)
-        video_data = analysis_result["video_data"]
-        gemini_analysis = analysis_result["gemini_analysis"]
+        # 1. Récupération des vraies données TikTok via scraper
+        video_data = tiktok_scraper_integration.get_video_data_from_url(
+            request.url)
 
         # 2. Extraction des features avec le système modulaire
-        features = feature_manager.extract_features(
-            video_data, gemini_analysis)
+        features = feature_manager.extract_features(video_data)
 
         # 3. Prédiction de viralité
         prediction_result = ml_manager.predict(features)
@@ -241,6 +251,71 @@ async def analyze_tiktok_url(request: TikTokURLRequest):
         raise HTTPException(400, f"URL invalide: {str(e)}")
     except Exception as e:
         raise HTTPException(500, f"Erreur analyse: {str(e)}")
+
+
+@app.post("/analyze-tiktok-profile")
+async def analyze_tiktok_profile(request: TikTokProfileRequest):
+    """
+    🎯 DDD Phase 4: Analyse de profil TikTok
+
+    Pipeline complet: Username → scraping profil → analyse vidéos → recommandations
+    Utilise le vrai scraper Apify pour récupérer toutes les vidéos du profil.
+    """
+    import time
+    start_time = time.time()
+
+    try:
+        # 1. Récupération des données du profil via scraper
+        profile_data = tiktok_scraper_integration.get_profile_data(
+            request.username, request.max_videos)
+
+        # 2. Analyse de chaque vidéo
+        videos_analysis = []
+        for video in profile_data.get('videos', []):
+            try:
+                # Extraction des features
+                features = feature_manager.extract_features(video)
+
+                # Prédiction de viralité
+                prediction = ml_manager.predict(features)
+
+                videos_analysis.append({
+                    "video_id": video.get('id'),
+                    "url": video.get('url'),
+                    "features": features,
+                    "prediction": prediction
+                })
+            except Exception as e:
+                logger.error(f"Erreur analyse vidéo {video.get('id')}: {e}")
+                continue
+
+        # 3. Statistiques du profil
+        total_videos = len(videos_analysis)
+        avg_virality = sum(v['prediction']['virality_score']
+                           for v in videos_analysis) / total_videos if total_videos > 0 else 0
+
+        # 4. Calcul du temps d'analyse
+        analysis_time = time.time() - start_time
+
+        return {
+            "username": request.username,
+            "profile_data": profile_data,
+            "videos_analysis": videos_analysis,
+            "profile_stats": {
+                "total_videos_analyzed": total_videos,
+                "average_virality_score": avg_virality,
+                "top_viral_videos": sorted(videos_analysis,
+                                           key=lambda x: x['prediction']['virality_score'],
+                                           reverse=True)[:5]
+            },
+            "analysis_time": analysis_time,
+            "status": "completed"
+        }
+
+    except ValueError as e:
+        raise HTTPException(400, f"Username invalide: {str(e)}")
+    except Exception as e:
+        raise HTTPException(500, f"Erreur analyse profil: {str(e)}")
 
 
 @app.post("/analyze")
