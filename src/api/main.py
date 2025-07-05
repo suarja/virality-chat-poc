@@ -8,6 +8,7 @@
 📚 Documentation: https://railway.app/docs
 🔗 OpenAPI: /docs
 """
+from .ml_model import ml_manager
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -50,20 +51,27 @@ class FeatureExtraction(BaseModel):
     extraction_time: float
 
 
-# Variables globales pour le modèle (à charger)
-model = None
-feature_extractor = None
+# Import du gestionnaire ML
 
 
 @app.on_event("startup")
 async def startup_event():
     """Chargement du modèle au démarrage"""
-    global model, feature_extractor
     try:
-        # TODO: Charger le modèle entraîné
-        # model = load_model("models/virality_model.pkl")
-        # feature_extractor = load_feature_extractor()
-        print("✅ API démarrée - Modèle à charger")
+        # Chargement du modèle ML
+        model_loaded = ml_manager.load_model()
+        feature_extractor_loaded = ml_manager.load_feature_extractor()
+
+        if model_loaded:
+            print("✅ Modèle ML chargé avec succès")
+        else:
+            print("⚠️ Modèle ML non trouvé - Utilisation des mocks")
+
+        if feature_extractor_loaded:
+            print("✅ Extracteur de features chargé")
+        else:
+            print("⚠️ Extracteur non trouvé - Utilisation des mocks")
+
     except Exception as e:
         print(f"⚠️ Erreur chargement modèle: {e}")
 
@@ -88,8 +96,8 @@ async def health_check():
     return {
         "status": "healthy",
         "version": "1.0.0",
-        "model_loaded": model is not None,
-        "feature_extractor_loaded": feature_extractor is not None,
+        "model_loaded": ml_manager.model is not None,
+        "feature_extractor_loaded": ml_manager.feature_extractor is not None,
         "environment": os.getenv("RAILWAY_ENVIRONMENT", "development")
     }
 
@@ -165,37 +173,10 @@ async def predict_virality(features: Dict[str, object]):
     R² = 0.457 avec seulement 10.6% de perte vs features complètes.
     """
     try:
-        # TODO: Implémenter prédiction avec modèle
-        # prediction = model.predict(features)
-
-        # Mock pour test DDD
-        virality_score = 0.75
-        confidence = 0.85
-
-        # Feature importance (basée sur nos résultats)
-        features_importance = {
-            "audience_connection_score": 0.124,
-            "hour_of_day": 0.108,
-            "video_duration_optimized": 0.101,
-            "emotional_trigger_count": 0.099,
-            "estimated_hashtag_count": 0.096
-        }
-
-        # Recommandations basées sur les features
-        recommendations = [
-            "Optimisez le timing de publication (heures 6-8h, 12-14h, 18-20h)",
-            "Réduisez le nombre de hashtags (moins = mieux)",
-            "Ajoutez plus de contact visuel avec la caméra",
-            "Améliorez la vibrance des couleurs"
-        ]
-
-        return ViralityPrediction(
-            virality_score=virality_score,
-            confidence=confidence,
-            r2_score=0.457,
-            features_importance=features_importance,
-            recommendations=recommendations
-        )
+        # Utilisation du gestionnaire ML
+        prediction_result = ml_manager.predict(features)
+        
+        return ViralityPrediction(**prediction_result)
 
     except Exception as e:
         raise HTTPException(500, f"Erreur prédiction: {str(e)}")
