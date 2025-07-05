@@ -27,17 +27,14 @@ Ce dossier contient tous les documents de réflexion et d'analyse créés pendan
 
 ## 🔬 **Documents de Recherche**
 
-### **Hypothèses et Méthodologie**
+### **Architecture et Stratégie**
 
-- **[`hypotheses_formulation.md`](./hypotheses_formulation.md)** - Formulation des hypothèses de recherche
-- **[`scoring_system_analysis.md`](./scoring_system_analysis.md)** - Analyse des systèmes de scoring
-- **[`validation_methodology.md`](./validation_methodology.md)** - Méthodologie de validation
+- **[`architecture_analysis_and_strategy.md`](./architecture_analysis_and_strategy.md)** - Analyse architecturale et stratégie de refactorisation
+- **[`strategic_recommendation.md`](./strategic_recommendation.md)** - Recommandation stratégique finale
 
-### **Analyse des Phases**
+### **Implémentation Technique**
 
-- **[`phase1_analysis.md`](./phase1_analysis.md)** - Analyse détaillée de la Phase 1
-- **[`phase2_analysis.md`](./phase2_analysis.md)** - Analyse détaillée de la Phase 2
-- **[`phase3_analysis.md`](./phase3_analysis.md)** - Analyse détaillée de la Phase 3
+- **[`modular_feature_system.py`](../src/features/modular_feature_system.py)** - Prototype de l'architecture modulaire
 
 ---
 
