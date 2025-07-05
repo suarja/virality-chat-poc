@@ -70,6 +70,22 @@ def parse_args():
         help="Only retry specific phase for failed accounts"
     )
 
+    # New feature system parameters
+    parser.add_argument(
+        "--feature-system",
+        choices=['legacy', 'modular'],
+        default='legacy',
+        help="Feature extraction system to use (default: legacy)"
+    )
+
+    parser.add_argument(
+        "--feature-set",
+        choices=['metadata', 'gemini_basic',
+                 'visual_granular', 'comprehensive'],
+        default='metadata',
+        help="Feature set to use with modular system (default: metadata)"
+    )
+
     return parser.parse_args()
 
 
@@ -245,25 +261,111 @@ def run_feature_extraction_phase(
     analysis_dir: Path,
     output_dir: Path,
     account: str,
-    tracker: BatchTracker
+    tracker: BatchTracker,
+    feature_system: str = 'legacy',
+    feature_set: str = 'metadata'
 ):
     """Run feature extraction phase for a batch."""
     logger = logging.getLogger(__name__)
-    logger.info(f"📊 Starting feature extraction for {account}")
+    logger.info(
+        f"📊 Starting feature extraction for {account} using {feature_system} system")
+
+    features_df = None
+    metadata = []
 
     try:
-        processor = DataProcessor()
-        features_df, metadata = processor.process_dataset(
-            raw_data_path=raw_data_path,
-            gemini_analysis_dir=analysis_dir,
-            output_dir=output_dir
-        )
+        if feature_system == 'modular':
+            try:
+                # Try modular system first
+                from src.features.modular_feature_system import FeatureExtractorManager
+
+                logger.info(
+                    f"🔧 Using modular feature system with {feature_set} feature set")
+                manager = FeatureExtractorManager([feature_set])
+
+                # Load raw data and analysis data
+                with open(raw_data_path, 'r') as f:
+                    raw_data = json.load(f)
+
+                # Process each video with modular system
+                all_features = []
+                all_metadata = []
+
+                for video in raw_data.get('videos', []):
+                    # Find corresponding analysis file (search recursively like legacy system)
+                    video_id = video.get('id', '')
+                    analysis_files = list(analysis_dir.rglob(
+                        f'video_{video_id}_analysis.json'))
+
+                    gemini_analysis = None
+                    if analysis_files:
+                        # Take the first found
+                        analysis_file = analysis_files[0]
+                        with open(analysis_file, 'r') as f:
+                            analysis_data = json.load(f)
+                            # Extract the analysis field from the response structure
+                            if analysis_data.get('success') and 'analysis' in analysis_data:
+                                gemini_analysis = analysis_data['analysis']
+                            else:
+                                gemini_analysis = analysis_data  # Fallback for old format
+
+                    # Extract features using modular system
+                    features = manager.extract_features(video, gemini_analysis)
+                    all_features.append(features)
+
+                    # Create metadata entry
+                    metadata_entry = {
+                        "video_id": video_id,
+                        "is_valid": True,
+                        "feature_count": len(features),
+                        "system_used": "modular",
+                        "feature_set": feature_set
+                    }
+                    all_metadata.append(metadata_entry)
+
+                # Convert to DataFrame
+                import pandas as pd
+                features_df = pd.DataFrame(all_features)
+                metadata = all_metadata
+
+                # Save results
+                output_file = output_dir / \
+                    f"{account}_features_{feature_set}.csv"
+                features_df.to_csv(output_file, index=False)
+
+                logger.info(f"✅ Modular features saved to {output_file}")
+
+            except ImportError as e:
+                logger.warning(f"⚠️ Modular system not available: {e}")
+                logger.info("🔄 Falling back to legacy DataProcessor")
+                feature_system = 'legacy'
+
+            except Exception as e:
+                logger.error(f"❌ Modular system failed: {e}")
+                logger.info("🔄 Falling back to legacy DataProcessor")
+                feature_system = 'legacy'
+
+        if feature_system == 'legacy':
+            logger.info("🔧 Using legacy DataProcessor")
+            processor = DataProcessor()
+            features_df, metadata = processor.process_dataset(
+                raw_data_path=raw_data_path,
+                gemini_analysis_dir=analysis_dir,
+                output_dir=output_dir
+            )
 
         # Log summary
-        valid_count = sum(1 for m in metadata if m["is_valid"])
-        logger.info(f"✅ Feature extraction completed for {account}:")
-        logger.info(f"   • Processed {len(features_df)} videos")
-        logger.info(f"   • Valid entries: {valid_count}/{len(metadata)}")
+        if features_df is not None and metadata:
+            valid_count = sum(1 for m in metadata if m.get("is_valid", False))
+            logger.info(f"✅ Feature extraction completed for {account}:")
+            logger.info(f"   • System used: {feature_system}")
+            if feature_system == 'modular':
+                logger.info(f"   • Feature set: {feature_set}")
+            logger.info(f"   • Processed {len(features_df)} videos")
+            logger.info(f"   • Valid entries: {valid_count}/{len(metadata)}")
+        else:
+            logger.error("❌ Feature extraction failed - no data produced")
+            raise Exception("No features extracted")
 
         return features_df, metadata
 
@@ -349,7 +451,9 @@ def process_batch(
                     analysis_dir=analysis_dir,
                     output_dir=features_dir,
                     account=account,
-                    tracker=tracker
+                    tracker=tracker,
+                    feature_system=args.feature_system,
+                    feature_set=args.feature_set
                 )
 
                 # Mark account as processed only if all phases succeeded
