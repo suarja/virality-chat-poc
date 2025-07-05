@@ -47,6 +47,10 @@ def aggregate_existing_features(dataset_dir: str, feature_set: str = 'comprehens
     # Chercher les fichiers de features par compte
     feature_files = list(features_dir.glob(f"*_features_{feature_set}.csv"))
 
+    # Si pas de fichiers avec le pattern spécifique, chercher des fichiers CSV génériques
+    if not feature_files:
+        feature_files = list(features_dir.glob("*.csv"))
+
     if not feature_files:
         raise FileNotFoundError(
             f"Aucun fichier de features trouvé dans {features_dir}")
@@ -173,9 +177,15 @@ def create_baseline_model(df: pd.DataFrame, target_col: str = 'view_count'):
         logger.info("Installer: pip install scikit-learn")
         return None, None
 
-    # Préparer les données
-    feature_cols = [col for col in df.columns if col not in [
+    # Préparer les données - exclure les colonnes non numériques
+    numeric_cols = df.select_dtypes(include=[np.number]).columns
+    feature_cols = [col for col in numeric_cols if col not in [
         'video_id', target_col, 'account_name']]
+
+    if not feature_cols:
+        logger.error("Aucune feature numérique trouvée pour le modèle")
+        return None, None
+
     X = df[feature_cols].fillna(0)  # Remplacer les NaN par 0
     y = df[target_col]
 
@@ -213,8 +223,8 @@ def create_baseline_model(df: pd.DataFrame, target_col: str = 'view_count'):
     # Métriques
     train_r2 = r2_score(y_train, y_pred_train)
     test_r2 = r2_score(y_test, y_pred_test)
-    train_rmse = mean_squared_error(y_train, y_pred_train, squared=False)
-    test_rmse = mean_squared_error(y_test, y_pred_test, squared=False)
+    train_rmse = np.sqrt(mean_squared_error(y_train, y_pred_train))
+    test_rmse = np.sqrt(mean_squared_error(y_test, y_pred_test))
 
     print(f"\n📈 MÉTRIQUES DE PERFORMANCE:")
     print(f"   • R² Score (train): {train_r2:.3f}")
@@ -267,7 +277,7 @@ def generate_insights(df: pd.DataFrame, model, metrics):
         print(f"   • Vues moyennes: {df['view_count'].mean():,.0f}")
 
     # Insights sur le modèle
-    if model and metrics:
+    if model is not None and isinstance(metrics, dict):
         print(f"\n🤖 INSIGHTS SUR LE MODÈLE:")
         print(f"   • Performance: R² = {metrics['test_r2']:.3f}")
 
@@ -342,7 +352,7 @@ def main():
 
         # Générer les insights
         if model and metrics:
-            generate_insights(df, model, metrics['feature_importance'])
+            generate_insights(df, model, metrics)
         else:
             generate_insights(df, None, None)
 
