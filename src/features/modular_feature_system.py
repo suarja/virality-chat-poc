@@ -1,7 +1,40 @@
 #!/usr/bin/env python3
 """
-Prototype de l'architecture modulaire pour les features
-Permet de "jongler" avec différents jeux de features de manière flexible
+📊 File: modular_feature_system.py
+🎯 Purpose: Modular feature engineering system for TikTok virality prediction with extensible architecture
+📚 Concepts: Feature Engineering, Modular Design, Object-Oriented Programming, Feature Categories
+🔗 Related: docs/educational/ml_glossary.md, scripts/analyze_existing_data.py
+
+📖 Educational Notes:
+- This module demonstrates advanced software engineering principles applied to machine learning
+- Shows how to create modular, extensible feature extraction systems
+- Implements the Strategy pattern for different feature extraction approaches
+- Provides a framework for adding new feature types without modifying existing code
+
+🚀 Usage:
+from src.features.modular_feature_system import create_feature_extractor
+extractor = create_feature_extractor('comprehensive')
+features = extractor.extract_features(video_data, gemini_analysis)
+
+📈 Architecture Benefits:
+- Modularity: Easy to add/remove feature sets
+- Extensibility: New feature types can be added independently
+- Maintainability: Clear separation of concerns
+- Testability: Each feature set can be tested in isolation
+
+🔧 Dependencies:
+- Python dataclasses, enums, ABC (Abstract Base Classes)
+- Custom feature extraction logic
+- Gemini AI analysis integration
+
+🎓 Key Software Engineering Concepts:
+1. Abstract Base Classes (ABC) - Defines interface for feature sets
+2. Strategy Pattern - Different feature extraction strategies
+3. Factory Pattern - Creates appropriate feature extractors
+4. Registry Pattern - Manages available feature sets
+5. Separation of Concerns - Each class has a single responsibility
+
+📚 For detailed explanations, see: docs/educational/ml_glossary.md
 """
 
 import logging
