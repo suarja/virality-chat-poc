@@ -8,12 +8,13 @@
 📚 Documentation: https://railway.app/docs
 🔗 OpenAPI: /docs
 """
+from .tiktok_analyzer import tiktok_analyzer
 from .feature_integration import feature_manager
 from .ml_model import ml_manager
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 import json
 import os
 
@@ -50,6 +51,20 @@ class FeatureExtraction(BaseModel):
     features: Dict[str, object]
     count: int
     extraction_time: float
+
+
+class TikTokURLRequest(BaseModel):
+    url: str
+    description: str = "URL de la vidéo TikTok à analyser"
+
+
+class TikTokAnalysis(BaseModel):
+    url: str
+    video_data: Dict[str, Any]
+    features: Dict[str, Any]
+    prediction: Dict[str, Any]
+    analysis_time: float
+    status: str
 
 
 # Import du gestionnaire ML
@@ -121,7 +136,8 @@ async def api_info():
             "health": "/health - Health check",
             "extract_features": "/extract-features - Extraction des features",
             "predict": "/predict - Prédiction de viralité",
-            "analyze": "/analyze - Pipeline complet"
+            "analyze_tiktok_url": "/analyze-tiktok-url - Analyse vidéo TikTok via URL",
+            "analyze": "/analyze - Pipeline complet upload vidéo"
         },
         "documentation": {
             "openapi": "/docs",
@@ -183,6 +199,48 @@ async def predict_virality(features: Dict[str, object]):
 
     except Exception as e:
         raise HTTPException(500, f"Erreur prédiction: {str(e)}")
+
+
+@app.post("/analyze-tiktok-url", response_model=TikTokAnalysis)
+async def analyze_tiktok_url(request: TikTokURLRequest):
+    """
+    🎯 DDD Phase 4: Analyse de vidéo TikTok via URL
+
+    Pipeline complet: URL TikTok → extraction données → features → prédiction
+    Utilise le système de features modulaire et l'analyse Gemini.
+    """
+    import time
+    start_time = time.time()
+
+    try:
+        # 1. Analyse de la vidéo TikTok
+        analysis_result = tiktok_analyzer.analyze_video(request.url)
+        video_data = analysis_result["video_data"]
+        gemini_analysis = analysis_result["gemini_analysis"]
+
+        # 2. Extraction des features avec le système modulaire
+        features = feature_manager.extract_features(
+            video_data, gemini_analysis)
+
+        # 3. Prédiction de viralité
+        prediction_result = ml_manager.predict(features)
+
+        # 4. Calcul du temps d'analyse
+        analysis_time = time.time() - start_time
+
+        return TikTokAnalysis(
+            url=request.url,
+            video_data=video_data,
+            features=features,
+            prediction=prediction_result,
+            analysis_time=analysis_time,
+            status="completed"
+        )
+
+    except ValueError as e:
+        raise HTTPException(400, f"URL invalide: {str(e)}")
+    except Exception as e:
+        raise HTTPException(500, f"Erreur analyse: {str(e)}")
 
 
 @app.post("/analyze")
