@@ -1,70 +1,88 @@
-# 📚 Index des Documents de Réflexion
+# 📚 Documentation Reflection - TikTok Virality Analysis
 
-## 🎯 **Vue d'Ensemble**
+Ce dossier contient toute la documentation de réflexion et d'analyse du projet TikTok Virality Analysis, organisée par thèmes.
 
-Ce dossier contient tous les documents de réflexion et d'analyse créés pendant le développement du projet TikTok Virality Prediction. Ces documents servent de base de connaissances et de guide pour les décisions futures.
+## 📁 Structure des Dossiers
 
----
+### 🧠 [Feature Engineering](./feature_engineering/)
+Documentation complète sur l'ingénierie des features, l'optimisation et les stratégies de sélection.
 
-## 📋 **Documents Principaux**
+**Fichiers principaux :**
+- [`comprehensive_feature_engineering.md`](./feature_engineering/comprehensive_feature_engineering.md) - 107 features détaillées par catégorie
+- [`feature_engineering_final_synthesis.md`](./feature_engineering/feature_engineering_final_synthesis.md) - Synthèse finale de l'ingénierie des features
+- [`optimization_comparison.md`](./feature_engineering/optimization_comparison.md) - Comparaison des approches d'optimisation
+- [`enhanced_visual_features.md`](./feature_engineering/enhanced_visual_features.md) - Features visuelles granulaires et actionnables
+- [`optimization_summary.md`](./feature_engineering/optimization_summary.md) - Résumé de l'optimisation des features
+- [`phase1_feature_selection.md`](./feature_engineering/phase1_feature_selection.md) - Sélection des features pour la Phase 1
+- [`feature_engineering_optimization.md`](./feature_engineering/feature_engineering_optimization.md) - Stratégie d'optimisation détaillée
+- [`visual_features_analysis.md`](./feature_engineering/visual_features_analysis.md) - Analyse approfondie des features visuelles
+- [`feature_engineering.md`](./feature_engineering/feature_engineering.md) - Vue d'ensemble de l'ingénierie des features
 
-### **1. Feature Engineering**
+### 🏗️ [Architecture](./architecture/)
+Documentation sur l'architecture du système, les décisions techniques et les recommandations stratégiques.
 
-- **[`comprehensive_feature_engineering.md`](./comprehensive_feature_engineering.md)** - Feature engineering complet et créatif
-- **[`feature_engineering_final_synthesis.md`](./feature_engineering_final_synthesis.md)** - Synthèse finale du feature engineering
+**Fichiers principaux :**
+- [`architecture_analysis_and_strategy.md`](./architecture/architecture_analysis_and_strategy.md) - Analyse architecturale et stratégie
+- [`model_architecture_clarification.md`](./architecture/model_architecture_clarification.md) - Clarification de l'architecture des modèles
+- [`strategic_recommendation.md`](./architecture/strategic_recommendation.md) - Recommandations stratégiques
 
-### **2. Architecture et Modèles**
+### 🔄 [Development Phases](./development_phases/)
+Documentation sur les phases de développement, le suivi des features et l'évolution du projet.
 
-- **[`model_architecture_clarification.md`](./model_architecture_clarification.md)** - Clarification de l'architecture des modèles
-- **[`phase_analysis_detailed.md`](./phase_analysis_detailed.md)** - Analyse détaillée des phases de développement
+**Fichiers principaux :**
+- [`phase_analysis_detailed.md`](./development_phases/phase_analysis_detailed.md) - Analyse détaillée des phases de développement
+- [`reflection_workspace.md`](./development_phases/reflection_workspace.md) - Espace de réflexion sur le développement
+- [`model_types_and_advanced_features.md`](./development_phases/model_types_and_advanced_features.md) - Types de modèles et features avancées
+- [`features_tracking.md`](./development_phases/features_tracking.md) - Suivi des features et leur évolution
 
-### **3. Analyse Visuelle**
+## 🎯 Points Clés de la Documentation
 
-- **[`visual_features_analysis.md`](./visual_features_analysis.md)** - Analyse approfondie des features visuelles
-- **[`enhanced_feature_optimizer_comparison.md`](./enhanced_feature_optimizer_comparison.md)** - Comparaison des approches d'optimisation
+### Système Modulaire de Features
+Le projet utilise maintenant un **système modulaire** pour l'extraction de features avec :
+- **4 Feature Sets** : `metadata`, `gemini_basic`, `visual_granular`, `comprehensive`
+- **Fallback automatique** vers le système legacy
+- **Flexibilité** pour ajouter de nouveaux feature sets
 
----
+### Architecture Évolutive
+- **Système Legacy** : `DataProcessor` classique avec un fichier consolidé
+- **Système Modulaire** : `FeatureExtractorManager` avec fichiers par compte
+- **Compatibilité** : Les deux systèmes peuvent coexister
 
-## 🔬 **Documents de Recherche**
+### Optimisation des Features
+- **107 Features** identifiées et documentées
+- **Stratégie d'optimisation** basée sur valeur vs complexité
+- **Features granulaires** pour des insights actionnables
 
-### **Architecture et Stratégie**
+## 🚀 Utilisation Rapide
 
-- **[`architecture_analysis_and_strategy.md`](./architecture_analysis_and_strategy.md)** - Analyse architecturale et stratégie de refactorisation
-- **[`strategic_recommendation.md`](./strategic_recommendation.md)** - Recommandation stratégique finale
+### Pipeline avec Système Modulaire
+```bash
+# Utiliser le système modulaire avec features visuelles granulaires
+python scripts/run_pipeline.py --dataset mon_dataset --feature-system modular --feature-set visual_granular
 
-### **Implémentation Technique**
+# Utiliser le système legacy (par défaut)
+python scripts/run_pipeline.py --dataset mon_dataset --feature-system legacy
+```
 
-- **[`modular_feature_system.py`](../src/features/modular_feature_system.py)** - Prototype de l'architecture modulaire
+### Feature Sets Disponibles
+- `metadata` : 20 features de base (durée, engagement, hashtags, etc.)
+- `gemini_basic` : 14 features d'analyse Gemini (qualité, viralité, etc.)
+- `visual_granular` : 10 features visuelles détaillées (composition, couleurs, etc.)
+- `comprehensive` : 32 features combinées (toutes les catégories)
 
----
+## 📖 Navigation
 
-## 🚀 **Documents Techniques**
+Pour comprendre le projet dans son ensemble, commencez par :
+1. [`feature_engineering/comprehensive_feature_engineering.md`](./feature_engineering/comprehensive_feature_engineering.md) - Vue d'ensemble des features
+2. [`architecture/architecture_analysis_and_strategy.md`](./architecture/architecture_analysis_and_strategy.md) - Architecture du système
+3. [`development_phases/phase_analysis_detailed.md`](./development_phases/phase_analysis_detailed.md) - Phases de développement
 
-### **Optimisation et Performance**
+## 🔗 Liens Utiles
 
-- **[`feature_optimization_strategy.md`](./feature_optimization_strategy.md)** - Stratégie d'optimisation des features
-- **[`enhanced_feature_optimizer_analysis.md`](./enhanced_feature_optimizer_analysis.md)** - Analyse de l'optimiseur amélioré
-
-### **Implémentation**
-
-- **[`implementation_notes.md`](./implementation_notes.md)** - Notes d'implémentation
-- **[`technical_decisions.md`](./technical_decisions.md)** - Décisions techniques importantes
-
----
-
-## 📊 **Documents d'Analyse**
-
-### **Évaluation et Métriques**
-
-- **[`evaluation_framework.md`](./evaluation_framework.md)** - Cadre d'évaluation
-- **[`performance_metrics.md`](./performance_metrics.md)** - Métriques de performance
-- **[`validation_results.md`](./validation_results.md)** - Résultats de validation
-
-### **Insights et Observations**
-
-- **[`key_insights.md`](./key_insights.md)** - Insights clés du projet
-- **[`lessons_learned.md`](./lessons_learned.md)** - Leçons apprises
-- **[`future_improvements.md`](./future_improvements.md)** - Améliorations futures
+- [Getting Started](../getting_started.md) - Guide de démarrage rapide
+- [Pipeline Documentation](../pipeline.md) - Documentation du pipeline
+- [Migration Summary](../migration_summary.md) - Résumé de la migration vers le système modulaire
+- [Structure Comparison](../structure_comparison.md) - Comparaison des structures legacy vs modulaire
 
 ---
 

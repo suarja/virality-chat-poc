@@ -91,11 +91,40 @@ The pipeline now uses a sophisticated batch processing system that:
 - **Supports resuming** from where it left off
 - **Limits total videos** to prevent excessive processing
 
+### Feature System Options
+
+The pipeline supports two feature extraction systems:
+
+#### **Legacy System** (Default)
+
+- Single consolidated file for all accounts
+- Basic features extraction
+- Use: `--feature-system legacy`
+
+#### **Modular System** (Recommended)
+
+- Separate files per account
+- Multiple feature sets available
+- Use: `--feature-system modular --feature-set <set_name>`
+
+**Available Feature Sets:**
+
+- `metadata` : 20 basic features (duration, engagement, hashtags)
+- `gemini_basic` : 14 Gemini analysis features (quality, virality)
+- `visual_granular` : 10 visual features (composition, colors, lighting)
+- `comprehensive` : 32 combined features (all categories)
+
 ### Basic Pipeline Run
 
 ```bash
-# Run with default settings (5 accounts per batch, 15 videos per account)
+# Run with legacy system (default)
 python scripts/run_pipeline.py --dataset v1
+
+# Run with modular system and metadata features
+python scripts/run_pipeline.py --dataset v1 --feature-system modular --feature-set metadata
+
+# Run with visual granular features
+python scripts/run_pipeline.py --dataset v1 --feature-system modular --feature-set visual_granular
 
 # Run with custom batch size
 python scripts/run_pipeline.py --dataset v1 --batch-size 3
@@ -119,21 +148,42 @@ python scripts/run_pipeline.py --dataset test --batch-size 1 --videos-per-accoun
 
 ### Pipeline Output Structure
 
+#### Legacy System Output
+
 ```
 data/
 ├── dataset_v1/
 │   ├── source.txt          # List of processed accounts
 │   ├── errors.txt          # Error tracking
-│   └── metadata.json       # Dataset metadata
-├── raw/
+│   └── batch_*.json        # Consolidated video data
+├── gemini_analysis/
 │   └── dataset_v1/
-│       └── batch_*.json    # Consolidated video data
-├── analysis/
-│   └── dataset_v1/
-│       └── gemini_*.json   # Gemini analysis results
+│       └── account_name/
+│           └── date/
+│               └── video_*_analysis.json
 └── features/
     └── dataset_v1/
-        └── features.csv    # Final feature dataset
+        └── processed_features.csv    # Single file for all accounts
+```
+
+#### Modular System Output
+
+```
+data/
+├── dataset_v1/
+│   ├── source.txt          # List of processed accounts
+│   ├── errors.txt          # Error tracking
+│   └── batch_*.json        # Consolidated video data
+├── gemini_analysis/
+│   └── dataset_v1/
+│       └── account_name/
+│           └── date/
+│               └── video_*_analysis.json
+└── features/
+    └── dataset_v1/
+        ├── account1_features_metadata.csv      # One file per account
+        ├── account2_features_visual_granular.csv
+        └── account3_features_comprehensive.csv
 ```
 
 ### Monitoring Progress
@@ -151,6 +201,29 @@ tail -f logs/pipeline_v1.log
 # View error logs
 tail -f logs/errors.log
 ```
+
+### Aggregating Features (Modular System)
+
+When using the modular system, features are generated per account. To combine them:
+
+```bash
+# Aggregate all metadata features from a dataset
+python scripts/aggregate_features.py --dataset-dir data/dataset_v1 --feature-set metadata --output aggregated_metadata.csv
+
+# Aggregate visual features with statistics
+python scripts/aggregate_features.py --dataset-dir data/dataset_v1 --feature-set visual_granular --show-stats
+
+# Aggregate without account column
+python scripts/aggregate_features.py --dataset-dir data/dataset_v1 --feature-set comprehensive --no-account-column
+```
+
+**Aggregation Options:**
+
+- `--dataset-dir` : Path to dataset directory
+- `--feature-set` : Feature set to aggregate (metadata, visual_granular, etc.)
+- `--output` : Output file (optional, shows preview if not specified)
+- `--no-account-column` : Don't add account name column
+- `--show-stats` : Display detailed statistics
 
 ## 🔧 Development Commands
 
@@ -216,6 +289,7 @@ flake8 src/ tests/ scripts/
    - Restart Python environment
 
 3. **Missing Dependencies**
+
    ```bash
    # Reinstall all dependencies
    pip install -r requirements.txt
