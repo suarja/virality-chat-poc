@@ -1,6 +1,38 @@
 #!/usr/bin/env python3
 """
-Script de test scraping - Validation rapide sur un compte
+📊 Test File: test_scraping.py
+🎯 Purpose: Tests for TikTok data collection and scraping functionality
+📚 Concepts: Web Scraping, Data Validation, API Integration, Rate Limiting
+🔗 Related: docs/educational/ml_glossary.md, src/scraping/tiktok_scraper.py
+
+📖 Educational Notes:
+- This test file demonstrates testing of external API integrations
+- Shows how to handle rate limiting and error scenarios
+- Demonstrates data validation and format checking
+- Illustrates mocking techniques for external dependencies
+
+🚀 Usage:
+python -m pytest tests/scraping/test_scraping.py -v
+
+📈 Test Coverage:
+- TikTok API integration testing
+- Data format validation
+- Error handling scenarios
+- Rate limiting behavior
+
+🔧 Dependencies:
+- src/scraping/tiktok_scraper.py
+- config/settings.py (TEST_ACCOUNTS)
+- Mock external API responses
+
+🎓 Key Testing Concepts Demonstrated:
+1. Integration Testing - Testing external API interactions
+2. Data Validation - Ensuring scraped data meets expected format
+3. Error Handling - Testing graceful failure scenarios
+4. Mock Testing - Simulating external dependencies
+5. Test Fixtures - Reusable test data and setup
+
+📚 For detailed explanations, see: docs/educational/ml_glossary.md
 """
 
 from config.settings import TEST_ACCOUNTS, RAW_DATA_DIR
