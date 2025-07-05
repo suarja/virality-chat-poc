@@ -37,68 +37,49 @@ python scripts/aggregate_features.py --dataset-dir data/dataset_poc_validation -
 
 ### **1.2 Analyse des Données** (1-2 jours)
 
-```python
-# Script d'analyse rapide
-import pandas as pd
-import matplotlib.pyplot as plt
-
-# Charger les features
-df = pd.read_csv('data/dataset_poc_validation/features_aggregated.csv')
-
-# Analyser la distribution des métriques
-print("Distribution des vues:", df['view_count'].describe())
-print("Corrélations avec les vues:", df.corr()['view_count'].sort_values())
-
-# Visualisations rapides
-plt.figure(figsize=(12, 8))
-df.corr()['view_count'].sort_values().plot(kind='bar')
-plt.title('Corrélations avec le nombre de vues')
-plt.show()
+```bash
+# Analyse automatique avec le script d'analyse
+python3 scripts/analyze_existing_data.py --dataset-dir data/dataset_poc_validation --feature-set comprehensive --save-model
 ```
+
+**Ce que fait le script :**
+
+- 📊 **Statistiques descriptives** : Distribution des vues, comptes, features
+- 🔗 **Analyse des corrélations** : Identifie les features les plus corrélées avec les vues
+- 🤖 **Modèle baseline** : Random Forest avec validation croisée
+- 💡 **Insights automatiques** : Recommandations basées sur les résultats
+- 📈 **Features importantes** : Top 10 des features les plus prédictives
 
 **Objectifs :**
 
 - Comprendre les patterns dans les données
 - Identifier les features les plus prédictives
 - Valider l'hypothèse de base
+- Obtenir un baseline de performance
 
 ### **1.3 Modèle Baseline** (2-3 jours)
 
-```python
-# Modèle simple pour validation rapide
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error, r2_score
+Le modèle baseline est maintenant intégré dans le script d'analyse automatique :
 
-# Préparer les données
-X = df.drop(['video_id', 'view_count', 'account_name'], axis=1)
-y = df['view_count']
-
-# Split train/test
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-# Modèle baseline
-model = RandomForestRegressor(n_estimators=100, random_state=42)
-model.fit(X_train, y_train)
-
-# Évaluation
-y_pred = model.predict(X_test)
-print(f"R² Score: {r2_score(y_test, y_pred):.3f}")
-print(f"RMSE: {mean_squared_error(y_test, y_pred, squared=False):.0f}")
-
-# Features importantes
-feature_importance = pd.DataFrame({
-    'feature': X.columns,
-    'importance': model.feature_importances_
-}).sort_values('importance', ascending=False)
-print("Top 10 features:", feature_importance.head(10))
+```bash
+# Le script d'analyse inclut déjà le modèle baseline
+python3 scripts/analyze_existing_data.py --dataset-dir data/dataset_poc_validation --feature-set comprehensive --save-model
 ```
+
+**Ce que fait le modèle baseline :**
+
+- 🤖 **Random Forest** : Modèle robuste pour les données tabulaires
+- 📊 **Validation croisée** : 5-fold CV pour évaluer la performance
+- 📈 **Métriques** : R² Score, RMSE, MAE
+- 🏆 **Feature importance** : Top 10 des features les plus prédictives
+- 💾 **Sauvegarde** : Option pour sauvegarder le modèle entraîné
 
 **Objectifs :**
 
 - Valider que les features sont prédictives
 - Obtenir un baseline de performance
 - Identifier les features clés
+- Préparer pour l'optimisation
 
 ## 🎯 Phase 2 : Développement du Modèle (Semaine 2)
 
@@ -297,8 +278,8 @@ const analyzeVideo = async (videoUrl) => {
 # 1. Test rapide du pipeline
 python scripts/run_pipeline.py --dataset poc_test --batch-size 1 --videos-per-account 5 --max-total-videos 10 --feature-system modular --feature-set comprehensive
 
-# 2. Vérifier les résultats
-python scripts/aggregate_features.py --dataset-dir data/dataset_poc_test --feature-set comprehensive --show-stats
+# 2. Analyser les résultats automatiquement
+python3 scripts/analyze_existing_data.py --dataset-dir data/dataset_poc_test --feature-set comprehensive --save-model
 ```
 
 ### **Cette Semaine :**

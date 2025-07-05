@@ -177,8 +177,35 @@ def create_baseline_model(df: pd.DataFrame, target_col: str = 'view_count'):
         logger.info("Installer: pip install scikit-learn")
         return None, None
 
-    # Préparer les données - exclure les colonnes non numériques
-    numeric_cols = df.select_dtypes(include=[np.number]).columns
+    # Préparer les données - transformer les dates et exclure les colonnes non numériques
+    df_processed = df.copy()
+
+    # Transformer les colonnes de dates en features numériques
+    date_columns = ['post_time', 'extraction_time']
+    for col in date_columns:
+        if col in df_processed.columns:
+            try:
+                # Convertir en datetime
+                df_processed[col] = pd.to_datetime(df_processed[col])
+
+                # Extraire les features temporelles
+                df_processed[f'{col}_hour'] = df_processed[col].dt.hour
+                df_processed[f'{col}_day_of_week'] = df_processed[col].dt.dayofweek
+                df_processed[f'{col}_month'] = df_processed[col].dt.month
+                df_processed[f'{col}_is_weekend'] = df_processed[col].dt.dayofweek.isin([
+                                                                                        5, 6]).astype(int)
+                df_processed[f'{col}_is_business_hours'] = ((df_processed[col].dt.hour >= 9) &
+                                                            (df_processed[col].dt.hour <= 17)).astype(int)
+
+                # Supprimer la colonne originale
+                df_processed = df_processed.drop(columns=[col])
+
+            except Exception as e:
+                logger.warning(f"Impossible de traiter la colonne {col}: {e}")
+                df_processed = df_processed.drop(columns=[col])
+
+    # Exclure les colonnes non numériques restantes
+    numeric_cols = df_processed.select_dtypes(include=[np.number]).columns
     feature_cols = [col for col in numeric_cols if col not in [
         'video_id', target_col, 'account_name']]
 
@@ -186,8 +213,8 @@ def create_baseline_model(df: pd.DataFrame, target_col: str = 'view_count'):
         logger.error("Aucune feature numérique trouvée pour le modèle")
         return None, None
 
-    X = df[feature_cols].fillna(0)  # Remplacer les NaN par 0
-    y = df[target_col]
+    X = df_processed[feature_cols].fillna(0)  # Remplacer les NaN par 0
+    y = df_processed[target_col]
 
     print(f"\n📋 FEATURES UTILISÉES ({len(feature_cols)}):")
     for i, feature in enumerate(feature_cols[:10], 1):

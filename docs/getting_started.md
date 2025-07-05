@@ -242,6 +242,35 @@ pip install package_name
 pip freeze > requirements.txt  # Update requirements.txt
 ```
 
+### Quick Analysis of Existing Data
+
+After running the pipeline and extracting features, you can analyze existing data without re-running the pipeline:
+
+```bash
+# Activate environment first
+source venv/bin/activate
+
+# Analyze existing dataset with comprehensive features
+python3 scripts/analyze_existing_data.py --dataset-dir data/dataset_poc_test --feature-set comprehensive
+
+# Analyze with different feature sets
+python3 scripts/analyze_existing_data.py --dataset-dir data/dataset_v1 --feature-set metadata
+python3 scripts/analyze_existing_data.py --dataset-dir data/dataset_v1 --feature-set visual_granular
+
+# Save the trained model
+python3 scripts/analyze_existing_data.py --dataset-dir data/dataset_poc_test --feature-set comprehensive --save-model
+```
+
+**What the analysis script does:**
+
+- 📊 **Data Distribution**: Shows statistics about views, accounts, and features
+- 🔗 **Correlations**: Identifies which features correlate most with view count
+- 🤖 **Baseline Model**: Trains a Random Forest model and shows performance metrics
+- 💡 **Insights**: Provides recommendations for next steps
+- 📈 **Feature Importance**: Shows which features are most predictive
+
+**Note**: The script automatically transforms date columns into numerical features (hour, day of week, month, etc.) for better model performance.
+
 ### Testing
 
 ```bash

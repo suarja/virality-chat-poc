@@ -24,12 +24,15 @@ python3 scripts/test_pipeline_with_aggregation.py
 ### 2. Analyse des Données Existantes
 
 ```bash
-# Si tu as déjà des données, analyser sans relancer le pipeline
-python3 scripts/check_poc_data.py --dataset-dir data/dataset_poc_test --aggregate
+# Analyser les données existantes sans relancer le pipeline
+python3 scripts/analyze_existing_data.py --dataset-dir data/dataset_poc_test --feature-set comprehensive
 
-# Ou analyser avec dépendances (si installées)
-pip install pandas numpy matplotlib scikit-learn
-python3 scripts/analyze_existing_data.py --dataset-dir data/dataset_poc_test --save-model
+# Sauvegarder le modèle entraîné
+python3 scripts/analyze_existing_data.py --dataset-dir data/dataset_poc_test --feature-set comprehensive --save-model
+
+# Analyser avec différents feature sets
+python3 scripts/analyze_existing_data.py --dataset-dir data/dataset_poc_test --feature-set metadata
+python3 scripts/analyze_existing_data.py --dataset-dir data/dataset_poc_test --feature-set visual_granular
 ```
 
 **Cette analyse va :**
@@ -48,7 +51,7 @@ python3 scripts/analyze_existing_data.py --dataset-dir data/dataset_poc_test --s
 python3 scripts/test_pipeline_with_aggregation.py
 
 # Jour 3-4 : Analyse et modèle baseline
-python3 scripts/analyze_existing_data.py --dataset-dir data/dataset_poc_test_aggregation --save-model
+python3 scripts/analyze_existing_data.py --dataset-dir data/dataset_poc_test --feature-set comprehensive --save-model
 
 # Jour 5 : Évaluation et planification
 ```
@@ -128,6 +131,9 @@ python3 scripts/test_gemini.py
 ```bash
 # Agrégation manuelle si nécessaire
 python3 scripts/aggregate_features.py --dataset-dir data/dataset_poc_test --feature-set comprehensive --show-stats
+
+# Ou analyser directement les features existantes
+python3 scripts/analyze_existing_data.py --dataset-dir data/dataset_poc_test --feature-set comprehensive
 ```
 
 ## 📊 Structure des Données
@@ -204,13 +210,10 @@ python3 scripts/run_pipeline.py --dataset poc_validation --batch-size 2 --videos
 
 ### **Analyse des Données**
 
-- `scripts/check_poc_data.py` - Vérification simple sans dépendances
-- `scripts/analyze_existing_data.py` - Analyse complète avec ML
+- `scripts/analyze_existing_data.py` - Analyse complète avec ML (recommandé)
 - `scripts/aggregate_features.py` - Agrégation manuelle si nécessaire
 
-### **Utilitaires**
-
-- `scripts/analyze_poc_data.py` - Analyse avec visualisations (dépendances requises)
+**Note**: Le script d'analyse transforme automatiquement les dates en features numériques (heure, jour de semaine, etc.) pour optimiser les performances du modèle.
 
 **Prêt à commencer ?** 🚀
 
