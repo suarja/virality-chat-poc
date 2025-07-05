@@ -91,8 +91,8 @@ class DataProcessor:
 
         try:
             analyses = {}
-            # Update pattern to match new filename format
-            analysis_files = list(analysis_dir.glob('video_*_analysis.json'))
+            # Search recursively for analysis files (including date subdirectories)
+            analysis_files = list(analysis_dir.rglob('video_*_analysis.json'))
 
             if not analysis_files:
                 raise ValueError(f"No analysis files found in {analysis_dir}")

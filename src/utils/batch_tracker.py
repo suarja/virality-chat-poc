@@ -83,15 +83,25 @@ class BatchTracker:
         processed = self.load_processed_accounts()
         errors = self.load_error_accounts()
 
+        # Separate successful from failed accounts
+        successful_accounts = [acc for acc in processed if acc not in errors]
+        failed_accounts = list(errors.keys())
+
+        # Count errors by phase more accurately
+        error_phases = {}
+        for phase in ['scraping', 'analysis', 'features']:
+            phase_errors = []
+            for account, account_errors in errors.items():
+                if any(e['phase'] == phase for e in account_errors):
+                    phase_errors.append(account)
+            error_phases[phase] = len(phase_errors)
+
         return {
-            'total_processed': len(processed),
-            'total_errors': len(errors),
-            'accounts_with_errors': list(errors.keys()),
-            'error_phases': {
-                'scraping': len(self.get_failed_accounts('scraping')),
-                'analysis': len(self.get_failed_accounts('analysis')),
-                'features': len(self.get_failed_accounts('features'))
-            }
+            'total_processed': len(processed),  # Total accounts attempted
+            'successful_accounts': len(successful_accounts),
+            'failed_accounts': len(failed_accounts),
+            'accounts_with_errors': failed_accounts,
+            'error_phases': error_phases
         }
 
     def mark_account_failed(self, account: str, phase: str, error: str):

@@ -90,3 +90,5 @@ temp/
 
 # Project specific
 .env 
+# ignore data/datasets qui contienent "test"
+data/dataset_test*

@@ -173,7 +173,9 @@ def run_gemini_phase(videos: List[Dict], account: str, tracker: BatchTracker):
         from scripts.test_gemini import analyze_tiktok_video
 
         date_str = datetime.now().strftime("%Y%m%d")
-        analysis_dir = Path("data/gemini_analysis") / account / date_str
+        # Unified structure: data/dataset_name/gemini_analysis/account/date
+        analysis_dir = Path(
+            "data") / f"dataset_{tracker.dataset_name}" / "gemini_analysis" / account / date_str
         analysis_dir.mkdir(parents=True, exist_ok=True)
 
         successful_analyses = 0
@@ -292,10 +294,11 @@ def process_batch(
                 "⚠️ No valid accounts found in scraping phase, continuing with next batch")
             return True  # Don't fail the batch, just continue
 
-        # Save consolidated results
-        raw_dir = Path("data") / "raw" / f"dataset_{args.dataset}"
-        raw_dir.mkdir(parents=True, exist_ok=True)
+        # Unified structure: data/dataset_name/
+        dataset_dir = Path("data") / f"dataset_{args.dataset}"
+        dataset_dir.mkdir(parents=True, exist_ok=True)
 
+        # Save consolidated results in unified structure
         consolidated_data = {
             "dataset": args.dataset,
             "batch_timestamp": datetime.now().isoformat(),
@@ -306,18 +309,19 @@ def process_batch(
         for result in results:
             consolidated_data["videos"].extend(result.get("videos", []))
 
-        consolidated_path = raw_dir / \
+        consolidated_path = dataset_dir / \
             f"batch_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
         with open(consolidated_path, 'w') as f:
             json.dump(consolidated_data, f, indent=2)
 
-        # 2. Gemini Analysis Phase
-        for account in accounts:
-            account_videos = [v for v in consolidated_data["videos"]
-                              if v.get("authorMeta", {}).get("name") == account]
-            if account_videos:
+            # 2. Gemini Analysis Phase - FIXED LOGIC
+        for result in results:
+            account = result.get('username')
+            videos = result.get('videos', [])
+
+            if account and videos:  # Only run if we have account and videos
                 try:
-                    run_gemini_phase(account_videos, account, tracker)
+                    run_gemini_phase(videos, account, tracker)
                 except Exception as e:
                     logger.error(
                         f"❌ Gemini analysis failed for {account}: {str(e)}")
@@ -327,14 +331,22 @@ def process_batch(
                     continue
 
         # 3. Feature Extraction Phase
-        features_dir = Path("data") / "features" / f"dataset_{args.dataset}"
+        features_dir = dataset_dir / "features"
         features_dir.mkdir(parents=True, exist_ok=True)
 
-        for account in accounts:
+        for result in results:
+            account = result.get('username')
+            if not account:
+                logger.warning("⚠️ Skipping result without username")
+                continue
+
             try:
+                # Unified analysis directory path
+                analysis_dir = dataset_dir / "gemini_analysis" / account
+
                 features_df, _ = run_feature_extraction_phase(
                     raw_data_path=consolidated_path,
-                    analysis_dir=Path("data/gemini_analysis") / account,
+                    analysis_dir=analysis_dir,
                     output_dir=features_dir,
                     account=account,
                     tracker=tracker
@@ -390,6 +402,7 @@ def main():
         # Process in batches - NO RETRY LOGIC to avoid costly retries
         total_processed = 0
         batch_count = 0
+        total_videos_processed = 0  # Track actual videos processed
 
         while total_processed < len(accounts_to_process):
             batch = tracker.get_next_batch(
@@ -408,21 +421,45 @@ def main():
             process_batch(batch, args, tracker)
             total_processed += len(batch)
 
-            # Check if we've hit the video limit
-            if total_processed * args.videos_per_account >= args.max_total_videos:
-                logger.info(
-                    f"Reached maximum video limit ({args.max_total_videos})")
-                break
+            # IMPROVED: Check actual videos processed from batch results
+            # Count videos from the last batch file
+            try:
+                dataset_dir = Path("data") / f"dataset_{args.dataset}"
+                batch_files = list(dataset_dir.glob("batch_*.json"))
+                if batch_files:
+                    latest_batch = max(
+                        batch_files, key=lambda x: x.stat().st_mtime)
+                    with open(latest_batch, 'r') as f:
+                        batch_data = json.load(f)
+                        actual_videos = len(batch_data.get('videos', []))
+                        total_videos_processed += actual_videos
+
+                        logger.info(
+                            f"📊 Batch {batch_count}: {actual_videos} videos processed (Total: {total_videos_processed})")
+
+                        if total_videos_processed >= args.max_total_videos:
+                            logger.info(
+                                f"🎯 Reached actual video limit ({total_videos_processed} >= {args.max_total_videos})")
+                            break
+            except Exception as e:
+                logger.warning(f"Could not count actual videos: {e}")
+                # Fallback to estimation
+                estimated_videos = total_processed * args.videos_per_account
+                if estimated_videos >= args.max_total_videos:
+                    logger.info(
+                        f"Reached estimated video limit ({estimated_videos} >= {args.max_total_videos})")
+                    break
 
         # Log final summary
         summary = tracker.summarize_progress()
         logger.info("\n📊 Pipeline Summary:")
-        logger.info(f"Total accounts processed: {summary['total_processed']}")
-        logger.info(
-            f"Accounts with errors: {len(summary['accounts_with_errors'])}")
+        logger.info(f"Total accounts attempted: {summary['total_processed']}")
+        logger.info(f"✅ Successful accounts: {summary['successful_accounts']}")
+        logger.info(f"❌ Failed accounts: {summary['failed_accounts']}")
         logger.info("Error counts by phase:")
         for phase, count in summary['error_phases'].items():
-            logger.info(f"  • {phase}: {count}")
+            if count > 0:
+                logger.info(f"  • {phase}: {count}")
 
         logger.info("✅ Pipeline completed successfully")
 

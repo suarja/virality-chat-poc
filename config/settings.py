@@ -32,30 +32,20 @@ TIKTOK_ACCOUNTS = [
     # 🎭 LIFESTYLE & DANSE
     "@leaelui",               # Danse, lifestyle, mainstream (7M+ followers)
     "@lea_mary",              # Lifestyle, mode, beauté
-    "@camillelv",             # Lifestyle, mode française
-    "@maeva_cook",            # Lifestyle, cuisine, quotidien
 
     # 😂 HUMOUR & ENTERTAINMENT
     "@athenasol",             # Humour, sketchs, pop culture
-    "@mcfly_et_carlito",      # Duo humour, challenges
-    "@julfou_",               # Humour, parodies
-    "@cyprien",               # Humour, gaming, tech
 
     # 🏠 VOYAGE & DÉCOUVERTE
     "@loupernaut",            # Voyage, curiosités, info grand public
-    "@partirdemain",          # Voyage, aventure
-    "@thomas.pesquet",        # Espace, science, découverte
 
     # 🤖 TECH & IA
     "@unefille.ia",           # Actu, Tutos, Outils IA
     "@swarecito",             # Data, IA, Automatisation
-    "@underscore_",           # Dev, tech, programmation
-    "@hubertiming",           # Tech, innovation
 
     # 🍕 FOOD & CUISINE
     "@pastelcuisine",         # Food, couple, vie quotidienne
     "@swiss_fit.cook",        # Recettes gourmandes faibles calories
-    "@chef.michel",           # Cuisine française traditionnelle
     "@healthyfood_creation",  # Cuisine healthy, nutrition
 
     # 🎮 GAMING & ESPORT
@@ -64,26 +54,16 @@ TIKTOK_ACCOUNTS = [
     "@squeezie",              # Gaming, divertissement
 
     # 💪 FITNESS & SPORT
-    "@tibo_inshape",          # Fitness, musculation
-    "@sissy.mua",             # Fitness féminin, lifestyle
-    "@coaching_nutrition",    # Fitness, nutrition
 
     # 🎨 ART & CRÉATIVITÉ
-    "@art_side",              # Art, créativité
-    "@diy_queen_",            # DIY, créativité manuelle
 
     # 🏢 BUSINESS & ENTREPRENEURIAT
     "@contiped",              # Rénovation piscines + humour
-    "@business_life_",        # Business, entrepreneuriat
     "@lindalys1_",            # Personnel/lifestyle
 
     # 🎵 MUSIQUE & DANSE
-    "@wejdene",               # Musique, danse
-    "@aya_nakamura",          # Musique française
 
     # 🔬 ÉDUCATION & SCIENCE
-    "@dirtybiology",          # Science, biologie
-    "@scienceetonnante",      # Science, vulgarisation
 ]
 
 # Configuration pour tests

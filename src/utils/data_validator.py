@@ -273,7 +273,7 @@ class DataValidator:
             return False, errors
 
         # Check for required analysis fields
-        required_analysis_fields = ['visual_elements',
+        required_analysis_fields = ['visual_analysis',
                                     'content_structure', 'engagement_factors']
         for field in required_analysis_fields:
             if field not in analysis:
