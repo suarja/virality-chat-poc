@@ -361,55 +361,289 @@ class ComprehensiveFeatureSet(BaseFeatureSet):
         return features
 
     def _extract_advanced_features(self, video_data: Dict, gemini_analysis: Optional[Dict] = None) -> Dict:
-        """Extrait les features avancées (Phase 2+3)."""
+        """Extrait les features avancées avec logique intelligente du comprehensive extractor."""
         features = {}
 
-        # Phase 2: Advanced features (placeholders)
+        try:
+            # Phase 1: Enhanced features (calculées intelligemment)
+            features.update(self._extract_enhanced_phase1_features(video_data))
+
+            # Phase 2: Advanced features (avec logique intelligente)
+            features.update(self._extract_advanced_phase2_features(
+                video_data, gemini_analysis))
+
+            # Phase 3: Innovation features (avec logique intelligente)
+            features.update(self._extract_innovation_phase3_features(
+                video_data, gemini_analysis))
+
+        except Exception as e:
+            logger.error(f"Error extracting advanced features: {e}")
+            # Return default values if extraction fails
+            for feature in self.features:
+                if feature not in features:
+                    features[feature] = 0.5  # Default neutral value
+
+        return features
+
+    def _extract_enhanced_phase1_features(self, video_data: Dict) -> Dict:
+        """Extrait les features Phase 1 améliorées avec logique intelligente."""
+        features = {}
+
+        # Video duration optimization - based on TikTok best practices
+        duration = video_data.get('videoMeta', {}).get('duration', 0)
+        if duration <= 15:
+            # Good for quick engagement
+            features['video_duration_optimized'] = 0.8
+        elif duration <= 30:
+            features['video_duration_optimized'] = 1.0  # Optimal for TikTok
+        elif duration <= 60:
+            features['video_duration_optimized'] = 0.6  # Acceptable
+        else:
+            features['video_duration_optimized'] = 0.3  # Too long for TikTok
+
+        # Hashtag effectiveness - based on research
+        hashtag_count = len(video_data.get('hashtags', []))
+        if 3 <= hashtag_count <= 5:
+            features['hashtag_effectiveness_score'] = 1.0  # Optimal range
+        elif 1 <= hashtag_count <= 7:
+            features['hashtag_effectiveness_score'] = 0.7  # Good range
+        else:
+            # Too few or too many
+            features['hashtag_effectiveness_score'] = 0.3
+
+        # Music trend alignment - placeholder for future music analysis
+        features['music_trend_alignment'] = 0.5
+
+        # Publish timing score - based on hour of day
+        post_time = video_data.get('createTimeISO', '')
+        if post_time:
+            import pandas as pd
+            post_time = pd.to_datetime(post_time)
+            hour = post_time.hour
+            # Peak hours: 7-9 AM, 12-2 PM, 7-9 PM
+            if (7 <= hour <= 9) or (12 <= hour <= 14) or (19 <= hour <= 21):
+                features['publish_timing_score'] = 0.9
+            elif (9 <= hour <= 12) or (14 <= hour <= 19):
+                features['publish_timing_score'] = 0.7
+            else:
+                features['publish_timing_score'] = 0.4
+        else:
+            features['publish_timing_score'] = 0.5
+
+        # Seasonal timing score - based on month
+        if post_time:
+            month = post_time.month
+            # Peak months: March-May, September-November
+            if month in [3, 4, 5, 9, 10, 11]:
+                features['seasonal_timing_score'] = 0.8
+            else:
+                features['seasonal_timing_score'] = 0.6
+        else:
+            features['seasonal_timing_score'] = 0.7
+
+        # Trending moment alignment - placeholder for trend analysis
+        features['trending_moment_alignment'] = 0.5
+
+        # Competition level - based on hashtag popularity
+        hashtags = [tag['name'].lower()
+                    for tag in video_data.get('hashtags', [])]
+        popular_hashtags = ['fyp', 'foryou', 'viral', 'trending', 'tiktok']
+        popular_count = sum(1 for tag in hashtags if tag in popular_hashtags)
+        features['competition_level'] = min(popular_count * 0.2, 1.0)
+
+        return features
+
+    def _extract_advanced_phase2_features(self, video_data: Dict, gemini_analysis: Optional[Dict]) -> Dict:
+        """Extrait les features Phase 2 avancées avec logique intelligente."""
+        features = {}
+
+        # Audio-visual features (placeholders for future audio analysis)
         features['music_energy'] = 0.6
         features['audio_visual_sync_score'] = 0.7
         features['voice_emotion'] = 'neutral'
-        features['attention_grab_strength'] = 0.6
-        features['emotional_hook_strength'] = 0.7
-        features['relatability_score'] = 0.5
-        features['originality_score'] = 0.6
-        features['creative_technique_count'] = 2
-        features['story_structure_type'] = 'linear'
 
-        # Phase 3: Innovation features (placeholders)
-        features['cultural_relevance_score'] = 0.5
-        features['generational_appeal'] = 'Gen Z'
-        features['social_issue_relevance'] = 0.3
-        features['shareability_score'] = 0.6
-        features['meme_potential'] = 0.4
-        features['challenge_potential'] = 0.5
-        features['completion_rate_prediction'] = 0.7
-        features['virality_velocity'] = 0.5
-        features['user_experience_score'] = 0.6
+        # Visual composition features (placeholders for future analysis)
+        features['rule_of_thirds_score'] = 0.7
+        features['depth_of_field_type'] = 'shallow'
+        features['color_palette_type'] = 'vibrant'
 
-        # Phase 1: Enhanced features (calculées)
-        duration = video_data.get('videoMeta', {}).get('duration', 0)
+        # Psychological features - based on content analysis
+        features.update(self._extract_psychological_features(
+            video_data, gemini_analysis))
+
+        # Creativity features - based on content structure
+        features.update(self._extract_creativity_features(
+            video_data, gemini_analysis))
+
+        return features
+
+    def _extract_innovation_phase3_features(self, video_data: Dict, gemini_analysis: Optional[Dict]) -> Dict:
+        """Extrait les features Phase 3 d'innovation avec logique intelligente."""
+        features = {}
+
+        # Cultural context features
+        features.update(self._extract_cultural_context_features(video_data))
+
+        # Virality potential features
+        features.update(self._extract_virality_potential_features(
+            video_data, gemini_analysis))
+
+        # Performance features
+        features.update(self._extract_performance_features(video_data))
+
+        return features
+
+    def _extract_psychological_features(self, video_data: Dict, gemini_analysis: Optional[Dict]) -> Dict:
+        """Extrait les features psychologiques basées sur l'analyse du contenu."""
+        features = {}
+
+        # Attention grab strength - based on hook presence and visual impact
+        hook_present = gemini_analysis.get('content_structure', {}).get(
+            'hook_effectiveness', '').lower() if gemini_analysis else ''
+        visual_quality = gemini_analysis.get('visual_analysis', {}).get(
+            'style_quality', '').lower() if gemini_analysis else ''
+
+        attention_score = 0.5  # Base score
+        if 'effective' in hook_present:
+            attention_score += 0.3
+        if 'high quality' in visual_quality:
+            attention_score += 0.2
+        features['attention_grab_strength'] = min(attention_score, 1.0)
+
+        # Emotional hook strength - based on emotional triggers
+        emotional_triggers = gemini_analysis.get('engagement_factors', {}).get(
+            'emotional_triggers', '') if gemini_analysis else ''
+        trigger_count = len([t for t in emotional_triggers.split(
+            ',') if t.strip()]) if emotional_triggers else 0
+        features['emotional_hook_strength'] = min(
+            0.3 + (trigger_count * 0.2), 1.0)
+
+        # Relatability score - based on content type and audience connection
+        audience_connection = gemini_analysis.get('engagement_factors', {}).get(
+            'audience_connection', '').lower() if gemini_analysis else ''
+        features['relatability_score'] = 0.8 if 'strong' in audience_connection else 0.5
+
+        return features
+
+    def _extract_creativity_features(self, video_data: Dict, gemini_analysis: Optional[Dict]) -> Dict:
+        """Extrait les features de créativité basées sur la structure du contenu."""
+        features = {}
+
+        # Originality score - based on content uniqueness
+        content_structure = gemini_analysis.get(
+            'content_structure', {}) if gemini_analysis else {}
+        story_flow = content_structure.get('story_flow', '').lower()
+        transitions = gemini_analysis.get('visual_analysis', {}).get(
+            'transitions', '').lower() if gemini_analysis else ''
+
+        originality_score = 0.5  # Base score
+        if 'unique' in story_flow or 'creative' in story_flow:
+            originality_score += 0.3
+        if 'smooth' in transitions or 'creative' in transitions:
+            originality_score += 0.2
+        features['originality_score'] = min(originality_score, 1.0)
+
+        # Creative technique count - count of creative elements
+        creative_elements = 0
+        if gemini_analysis:
+            if 'transitions' in gemini_analysis.get('visual_analysis', {}):
+                creative_elements += 1
+            if 'text_overlays' in gemini_analysis.get('visual_analysis', {}):
+                creative_elements += 1
+            if 'call_to_action' in gemini_analysis.get('content_structure', {}):
+                creative_elements += 1
+        features['creative_technique_count'] = creative_elements
+
+        # Story structure type - categorize narrative structure
+        if gemini_analysis:
+            story_flow = gemini_analysis.get(
+                'content_structure', {}).get('story_flow', '').lower()
+            if 'linear' in story_flow:
+                features['story_structure_type'] = 'linear'
+            elif 'circular' in story_flow:
+                features['story_structure_type'] = 'circular'
+            else:
+                features['story_structure_type'] = 'linear'  # Default
+        else:
+            features['story_structure_type'] = 'linear'
+
+        return features
+
+    def _extract_cultural_context_features(self, video_data: Dict) -> Dict:
+        """Extrait les features de contexte culturel basées sur le contenu et le timing."""
+        features = {}
+
+        # Cultural relevance score - based on hashtags and content
+        hashtags = [tag['name'].lower()
+                    for tag in video_data.get('hashtags', [])]
+        cultural_keywords = ['trend', 'viral', 'fyp', 'foryou', 'tiktok']
+        cultural_matches = sum(1 for tag in hashtags if any(
+            keyword in tag for keyword in cultural_keywords))
+        features['cultural_relevance_score'] = min(
+            cultural_matches / max(len(hashtags), 1), 1.0)
+
+        # Generational appeal - based on content characteristics
+        # Simple heuristic: shorter videos tend to appeal more to Gen Z
+        duration = video_data.get('videoMeta', {}).get('duration', 60)
         if duration <= 15:
-            features['video_duration_optimized'] = 0.8
+            features['generational_appeal'] = 'Gen Z'
         elif duration <= 30:
-            features['video_duration_optimized'] = 1.0
+            features['generational_appeal'] = 'Gen Z/Millennial'
+        else:
+            features['generational_appeal'] = 'Millennial'
+
+        # Social issue relevance - placeholder for future implementation
+        features['social_issue_relevance'] = 0.3  # Default low relevance
+
+        return features
+
+    def _extract_virality_potential_features(self, video_data: Dict, gemini_analysis: Optional[Dict]) -> Dict:
+        """Extrait les features de potentiel viral basées sur les caractéristiques du contenu."""
+        features = {}
+
+        # Shareability score - based on content characteristics
+        viral_potential = gemini_analysis.get('engagement_factors', {}).get(
+            'viral_potential', '').lower() if gemini_analysis else ''
+        features['shareability_score'] = 0.8 if 'high' in viral_potential else 0.5
+
+        # Meme potential - based on content type and structure
+        content_type = video_data.get('text', '').lower()
+        meme_keywords = ['meme', 'funny', 'lol', 'haha', '😂', '🤣']
+        meme_matches = sum(
+            1 for keyword in meme_keywords if keyword in content_type)
+        features['meme_potential'] = min(meme_matches * 0.2, 1.0)
+
+        # Challenge potential - based on content characteristics
+        challenge_keywords = ['challenge', 'try', 'test', 'dare']
+        challenge_matches = sum(
+            1 for keyword in challenge_keywords if keyword in content_type)
+        features['challenge_potential'] = min(challenge_matches * 0.3, 1.0)
+
+        return features
+
+    def _extract_performance_features(self, video_data: Dict) -> Dict:
+        """Extrait les features de performance basées sur le contenu et les métadonnées."""
+        features = {}
+
+        # Completion rate prediction - based on video length and engagement
+        duration = video_data.get('videoMeta', {}).get('duration', 60)
+        # Shorter videos tend to have higher completion rates
+        if duration <= 15:
+            features['completion_rate_prediction'] = 0.8
+        elif duration <= 30:
+            features['completion_rate_prediction'] = 0.7
         elif duration <= 60:
-            features['video_duration_optimized'] = 0.6
+            features['completion_rate_prediction'] = 0.6
         else:
-            features['video_duration_optimized'] = 0.3
+            features['completion_rate_prediction'] = 0.5
 
-        hashtag_count = len(video_data.get('hashtags', []))
-        if 3 <= hashtag_count <= 5:
-            features['hashtag_effectiveness_score'] = 1.0
-        elif 1 <= hashtag_count <= 7:
-            features['hashtag_effectiveness_score'] = 0.7
-        else:
-            features['hashtag_effectiveness_score'] = 0.3
+        # Virality velocity - based on content characteristics
+        # Placeholder for future implementation
+        features['virality_velocity'] = 0.5
 
-        features['music_trend_alignment'] = 0.5  # Placeholder
-        features['publish_timing_score'] = 0.8  # Placeholder
-        features['seasonal_timing_score'] = 0.7  # Placeholder
-        features['trending_moment_alignment'] = 0.5  # Placeholder
-        features['competition_level'] = 0.5  # Placeholder
+        # User experience score - based on video quality and structure
+        # Placeholder for future implementation
+        features['user_experience_score'] = 0.6
 
         return features
 
