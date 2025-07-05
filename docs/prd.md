@@ -46,30 +46,37 @@ Prédire la viralité (et expliquer les facteurs clés) d'une vidéo TikTok à p
 
 ### 5.1 Fonctionnalités principales
 
-#### A. Collecte de données
+#### A. Collecte de données historiques (Entraînement)
 
 - Scrapping de comptes TikTok (Apify, etc.)
 - Extraction de la liste des vidéos, stats, métadonnées
+- **Objectif** : Créer un dataset d'entraînement avec features complètes
 
 #### B. Extraction de features vidéo
 
 - Analyse vidéo (Gemini ou autre API LMM)
 - Structuration automatisée des features clés (visuels, textes, sons, rythme…)
+- **Distinction** : Features pré-publication vs post-publication
 
-#### C. Prédiction de viralité
+#### C. Prédiction de viralité AVANT publication
 
-- Modèle ML rapide (RandomForest, XGBoost…)
+- Modèle ML entraîné sur données historiques complètes
+- **Prédiction** : Avec seulement features pré-publication disponibles
 - Seuil viralité paramétrable (par niche, par audience)
 
-#### D. Interprétation/explanation
+#### D. Interface utilisateur
+
+- Upload de vidéo par l'utilisateur
+- Analyse automatique des features pré-publication
+- Prédiction de viralité en temps réel
+- **Valeur business** : Aide à la décision avant publication
+
+#### E. Interprétation et recommandations
 
 - Importance des features (feature importance)
-- "Pourquoi ma vidéo marche/ne marche pas" (explanation automatique)
-
-#### E. Génération d'insights
-
-- Conseils actionnables, suggestions d'amélioration
-- Export des résultats, cas d'étude (template)
+- "Pourquoi ma vidéo a du potentiel/ne marchera pas"
+- Conseils actionnables pour améliorer la viralité
+- Suggestions d'optimisation avant publication
 
 ### 5.2 Fonctionnalités secondaires (stretch goals / V2)
 
@@ -83,9 +90,10 @@ Prédire la viralité (et expliquer les facteurs clés) d'une vidéo TikTok à p
 
 ## 6. User Stories
 
-- En tant qu'utilisateur je veux soumettre le lien d'une vidéo pour savoir si elle peut devenir virale (et pourquoi)
-- En tant que créateur je veux comprendre ce qui booste/limite mes performances pour améliorer mes prochaines vidéos
-- En tant que freelance/data engineer je veux produire un cas d'étude sur ce sujet pour démontrer mes skills
+- En tant que créateur TikTok, je veux télécharger ma vidéo AVANT publication pour savoir si elle a du potentiel viral
+- En tant qu'utilisateur, je veux recevoir des recommandations spécifiques pour améliorer ma vidéo avant de la publier
+- En tant que créateur, je veux comprendre quels éléments visuels boostent mes chances de viralité
+- En tant que freelance/data engineer, je veux produire un cas d'étude sur la prédiction pré-publication pour démontrer mes skills
 
 ---
 
@@ -101,8 +109,10 @@ Prédire la viralité (et expliquer les facteurs clés) d'une vidéo TikTok à p
 
 ## 8. Métriques de succès (KPIs)
 
-- Prédiction "précise" (>70% accuracy) sur la viralité sur un batch test
+- Prédiction "précise" (>70% accuracy) de viralité AVANT publication
+- Corrélation >0.7 entre prédictions pré-publication et viralité réelle
 - Interprétabilité des résultats (feature importance, explications générées)
+- Interface utilisateur fonctionnelle pour upload et analyse de vidéos
 - Livrable "case study" documenté (notebook, vidéo, doc)
 - Capacité à enrichir le portfolio Upwork, LinkedIn, TikTok avec un vrai use-case
 
