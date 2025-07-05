@@ -2,6 +2,7 @@
 """
 Script pour analyser les données existantes du POC.
 Utilisé quand le pipeline a déjà généré les features mais qu'il manque l'agrégation.
+CORRIGÉ : Implémente la logique correcte de séparation pré-publication/post-publication.
 """
 import pandas as pd
 import numpy as np
@@ -21,6 +22,70 @@ def setup_logging():
         format='%(asctime)s - %(levelname)s - %(message)s'
     )
     return logging.getLogger(__name__)
+
+
+def categorize_features(df: pd.DataFrame):
+    """
+    Catégorise les features en pré-publication et post-publication.
+
+    Args:
+        df: DataFrame avec toutes les features
+
+    Returns:
+        dict: Dictionnaire avec features pré-publication et post-publication
+    """
+    logger = logging.getLogger(__name__)
+
+    # Features PRÉ-PUBLICATION (disponibles avant publication)
+    pre_publication_features = [
+        # Métadonnées vidéo
+        'duration', 'hashtag_count', 'estimated_hashtag_count',
+
+        # Features temporelles
+        'hour_of_day', 'day_of_week', 'month', 'is_weekend', 'is_business_hours',
+
+        # Features Gemini (analyse visuelle)
+        'has_text_overlays', 'has_transitions', 'visual_quality_score',
+        'has_hook', 'has_story', 'has_call_to_action', 'viral_potential_score',
+        'emotional_trigger_count', 'audience_connection_score', 'length_optimized',
+        'sound_quality_score', 'production_quality_score', 'trend_alignment_score',
+
+        # Features visuelles granulaires
+        'close_up_presence', 'zoom_effects_count', 'transition_count',
+        'color_vibrancy_score', 'human_presence', 'face_count',
+        'text_overlay_presence', 'camera_movement_score', 'brightness_score',
+        'contrast_score', 'video_duration_optimized',
+
+        # Features transformées de dates
+        'post_time_hour', 'post_time_day_of_week', 'post_time_month',
+        'post_time_is_weekend', 'post_time_is_business_hours',
+        'extraction_time_hour', 'extraction_time_day_of_week', 'extraction_time_month',
+        'extraction_time_is_weekend', 'extraction_time_is_business_hours'
+    ]
+
+    # Features POST-PUBLICATION (disponibles seulement après publication)
+    post_publication_features = [
+        'view_count', 'like_count', 'comment_count', 'share_count',
+        'like_rate', 'comment_rate', 'share_rate', 'engagement_rate'
+    ]
+
+    # Filtrer les features qui existent réellement dans le dataset
+    available_features = df.columns.tolist()
+
+    pre_pub_available = [
+        f for f in pre_publication_features if f in available_features]
+    post_pub_available = [
+        f for f in post_publication_features if f in available_features]
+
+    logger.info(f"Features pré-publication trouvées: {len(pre_pub_available)}")
+    logger.info(
+        f"Features post-publication trouvées: {len(post_pub_available)}")
+
+    return {
+        'pre_publication': pre_pub_available,
+        'post_publication': post_pub_available,
+        'all_features': available_features
+    }
 
 
 def aggregate_existing_features(dataset_dir: str, feature_set: str = 'comprehensive'):
@@ -157,7 +222,7 @@ def analyze_correlations(df: pd.DataFrame, target_col: str = 'view_count'):
 
 
 def create_baseline_model(df: pd.DataFrame, target_col: str = 'view_count'):
-    """Crée et évalue un modèle baseline."""
+    """Crée et évalue un modèle baseline avec séparation pré-publication/post-publication."""
     logger = logging.getLogger(__name__)
 
     if target_col not in df.columns:
@@ -165,7 +230,7 @@ def create_baseline_model(df: pd.DataFrame, target_col: str = 'view_count'):
         return None, None
 
     print("\n" + "="*60)
-    print("🤖 MODÈLE BASELINE")
+    print("🤖 MODÈLE BASELINE - LOGIQUE CORRIGÉE")
     print("="*60)
 
     try:
@@ -204,35 +269,52 @@ def create_baseline_model(df: pd.DataFrame, target_col: str = 'view_count'):
                 logger.warning(f"Impossible de traiter la colonne {col}: {e}")
                 df_processed = df_processed.drop(columns=[col])
 
-    # Exclure les colonnes non numériques restantes
+    # Catégoriser les features
+    feature_categories = categorize_features(df_processed)
+
+    print(f"\n📋 CATÉGORISATION DES FEATURES:")
+    print(
+        f"   • Pré-publication: {len(feature_categories['pre_publication'])} features")
+    print(
+        f"   • Post-publication: {len(feature_categories['post_publication'])} features")
+
+    # Exclure les colonnes non numériques
     numeric_cols = df_processed.select_dtypes(include=[np.number]).columns
-    feature_cols = [col for col in numeric_cols if col not in [
+    all_feature_cols = [col for col in numeric_cols if col not in [
         'video_id', target_col, 'account_name']]
 
-    if not feature_cols:
-        logger.error("Aucune feature numérique trouvée pour le modèle")
-        return None, None
+    # Filtrer les features par catégorie
+    pre_pub_features = [
+        f for f in feature_categories['pre_publication'] if f in all_feature_cols]
+    post_pub_features = [
+        f for f in feature_categories['post_publication'] if f in all_feature_cols]
 
-    X = df_processed[feature_cols].fillna(0)  # Remplacer les NaN par 0
-    y = df_processed[target_col]
+    print(
+        f"\n🔍 FEATURES PRÉ-PUBLICATION DISPONIBLES ({len(pre_pub_features)}):")
+    for i, feature in enumerate(pre_pub_features[:10], 1):
+        print(f"   {i:2d}. {feature}")
+    if len(pre_pub_features) > 10:
+        print(f"   ... et {len(pre_pub_features) - 10} autres")
 
-    print(f"\n📋 FEATURES UTILISÉES ({len(feature_cols)}):")
-    for i, feature in enumerate(feature_cols[:10], 1):
+    print(
+        f"\n📊 FEATURES POST-PUBLICATION DISPONIBLES ({len(post_pub_features)}):")
+    for i, feature in enumerate(post_pub_features, 1):
         print(f"   {i:2d}. {feature}")
 
-    if len(feature_cols) > 10:
-        print(f"   ... et {len(feature_cols) - 10} autres")
+    # PHASE 1: Entraînement avec toutes les features (pour apprendre les patterns)
+    print(f"\n🎯 PHASE 1: ENTRAÎNEMENT AVEC FEATURES COMPLÈTES")
+    X_full = df_processed[all_feature_cols].fillna(0)
+    y = df_processed[target_col]
 
     # Split train/test
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42)
+    X_train_full, X_test_full, y_train, y_test = train_test_split(
+        X_full, y, test_size=0.2, random_state=42)
 
-    print(f"\n📊 SPLIT DES DONNÉES:")
-    print(f"   • Train: {len(X_train)} vidéos")
-    print(f"   • Test: {len(X_test)} vidéos")
+    print(f"   • Train: {len(X_train_full)} vidéos")
+    print(f"   • Test: {len(X_test_full)} vidéos")
 
-    # Modèle Random Forest
-    model = RandomForestRegressor(
+    # Modèle avec toutes les features
+    model_full = RandomForestRegressor(
         n_estimators=100,
         max_depth=10,
         random_state=42,
@@ -240,49 +322,99 @@ def create_baseline_model(df: pd.DataFrame, target_col: str = 'view_count'):
     )
 
     # Entraînement
-    logger.info("Entraînement du modèle...")
-    model.fit(X_train, y_train)
+    logger.info("Entraînement du modèle avec features complètes...")
+    model_full.fit(X_train_full, y_train)
 
-    # Prédictions
-    y_pred_train = model.predict(X_train)
-    y_pred_test = model.predict(X_test)
+    # Prédictions avec features complètes
+    y_pred_train_full = model_full.predict(X_train_full)
+    y_pred_test_full = model_full.predict(X_test_full)
 
-    # Métriques
-    train_r2 = r2_score(y_train, y_pred_train)
-    test_r2 = r2_score(y_test, y_pred_test)
-    train_rmse = np.sqrt(mean_squared_error(y_train, y_pred_train))
-    test_rmse = np.sqrt(mean_squared_error(y_test, y_pred_test))
+    # Métriques avec features complètes
+    train_r2_full = r2_score(y_train, y_pred_train_full)
+    test_r2_full = r2_score(y_test, y_pred_test_full)
 
-    print(f"\n📈 MÉTRIQUES DE PERFORMANCE:")
-    print(f"   • R² Score (train): {train_r2:.3f}")
-    print(f"   • R² Score (test):  {test_r2:.3f}")
-    print(f"   • RMSE (train):     {train_rmse:,.0f}")
-    print(f"   • RMSE (test):      {test_rmse:,.0f}")
+    print(f"   • R² Score (train): {train_r2_full:.3f}")
+    print(f"   • R² Score (test):  {test_r2_full:.3f}")
 
-    # Validation croisée
-    cv_scores = cross_val_score(model, X, y, cv=5, scoring='r2')
-    print(f"\n🔄 VALIDATION CROISÉE (5-fold):")
-    print(f"   • R² Score moyen: {cv_scores.mean():.3f}")
-    print(f"   • Écart-type: {cv_scores.std():.3f}")
+    # PHASE 2: Test avec features pré-publication seulement
+    print(f"\n🎯 PHASE 2: TEST AVEC FEATURES PRÉ-PUBLICATION SEULEMENT")
 
-    # Features importantes
-    feature_importance = pd.DataFrame({
-        'feature': feature_cols,
-        'importance': model.feature_importances_
+    if not pre_pub_features:
+        logger.error("Aucune feature pré-publication disponible pour le test")
+        return None, None
+
+    # Sélectionner seulement les features pré-publication
+    X_pre_pub = df_processed[pre_pub_features].fillna(0)
+
+    # Split train/test avec features pré-publication
+    X_train_pre, X_test_pre, y_train_pre, y_test_pre = train_test_split(
+        X_pre_pub, y, test_size=0.2, random_state=42)
+
+    # Modèle avec features pré-publication seulement
+    model_pre_pub = RandomForestRegressor(
+        n_estimators=100,
+        max_depth=10,
+        random_state=42,
+        n_jobs=-1
+    )
+
+    # Entraînement avec features pré-publication
+    logger.info("Entraînement du modèle avec features pré-publication...")
+    model_pre_pub.fit(X_train_pre, y_train_pre)
+
+    # Prédictions avec features pré-publication
+    y_pred_train_pre = model_pre_pub.predict(X_train_pre)
+    y_pred_test_pre = model_pre_pub.predict(X_test_pre)
+
+    # Métriques avec features pré-publication
+    train_r2_pre = r2_score(y_train_pre, y_pred_train_pre)
+    test_r2_pre = r2_score(y_test_pre, y_pred_test_pre)
+    train_rmse_pre = np.sqrt(mean_squared_error(y_train_pre, y_pred_train_pre))
+    test_rmse_pre = np.sqrt(mean_squared_error(y_test_pre, y_pred_test_pre))
+
+    print(f"   • R² Score (train): {train_r2_pre:.3f}")
+    print(f"   • R² Score (test):  {test_r2_pre:.3f}")
+    print(f"   • RMSE (train):     {train_rmse_pre:,.0f}")
+    print(f"   • RMSE (test):      {test_rmse_pre:,.0f}")
+
+    # Validation croisée avec features pré-publication
+    cv_scores_pre = cross_val_score(
+        model_pre_pub, X_pre_pub, y, cv=5, scoring='r2')
+    print(f"\n🔄 VALIDATION CROISÉE (5-fold) - Features pré-publication:")
+    print(f"   • R² Score moyen: {cv_scores_pre.mean():.3f}")
+    print(f"   • Écart-type: {cv_scores_pre.std():.3f}")
+
+    # Features importantes (pré-publication)
+    feature_importance_pre = pd.DataFrame({
+        'feature': pre_pub_features,
+        'importance': model_pre_pub.feature_importances_
     }).sort_values('importance', ascending=False)
 
-    print(f"\n🏆 TOP 10 FEATURES IMPORTANTES:")
-    for i, (_, row) in enumerate(feature_importance.head(10).iterrows(), 1):
+    print(f"\n🏆 TOP 10 FEATURES IMPORTANTES (PRÉ-PUBLICATION):")
+    for i, (_, row) in enumerate(feature_importance_pre.head(10).iterrows(), 1):
         print(f"   {i:2d}. {row['feature']}: {row['importance']:.3f}")
 
-    return model, {
-        'train_r2': train_r2,
-        'test_r2': test_r2,
-        'train_rmse': train_rmse,
-        'test_rmse': test_rmse,
-        'cv_mean': cv_scores.mean(),
-        'cv_std': cv_scores.std(),
-        'feature_importance': feature_importance
+    # Comparaison des performances
+    print(f"\n📊 COMPARAISON DES PERFORMANCES:")
+    print(f"   • Avec features complètes: R² = {test_r2_full:.3f}")
+    print(f"   • Avec features pré-publication: R² = {test_r2_pre:.3f}")
+    print(
+        f"   • Perte de performance: {((test_r2_full - test_r2_pre) / test_r2_full * 100):.1f}%")
+
+    return model_pre_pub, {
+        'train_r2': train_r2_pre,
+        'test_r2': test_r2_pre,
+        'train_rmse': train_rmse_pre,
+        'test_rmse': test_rmse_pre,
+        'cv_mean': cv_scores_pre.mean(),
+        'cv_std': cv_scores_pre.std(),
+        'feature_importance': feature_importance_pre,
+        'pre_publication_features': pre_pub_features,
+        'performance_comparison': {
+            'full_features_r2': test_r2_full,
+            'pre_publication_r2': test_r2_pre,
+            'performance_loss': ((test_r2_full - test_r2_pre) / test_r2_full * 100)
+        }
     }
 
 
@@ -305,7 +437,7 @@ def generate_insights(df: pd.DataFrame, model, metrics):
 
     # Insights sur le modèle
     if model is not None and isinstance(metrics, dict):
-        print(f"\n🤖 INSIGHTS SUR LE MODÈLE:")
+        print(f"\n🤖 INSIGHTS SUR LE MODÈLE PRÉ-PUBLICATION:")
         print(f"   • Performance: R² = {metrics['test_r2']:.3f}")
 
         if metrics['test_r2'] > 0.6:
@@ -317,18 +449,37 @@ def generate_insights(df: pd.DataFrame, model, metrics):
         else:
             print(f"   • Évaluation: À améliorer")
 
+        # Comparaison des performances
+        if 'performance_comparison' in metrics:
+            comp = metrics['performance_comparison']
+            print(f"\n📈 COMPARAISON AVEC FEATURES COMPLÈTES:")
+            print(
+                f"   • Features complètes: R² = {comp['full_features_r2']:.3f}")
+            print(
+                f"   • Features pré-publication: R² = {comp['pre_publication_r2']:.3f}")
+            print(
+                f"   • Perte de performance: {comp['performance_loss']:.1f}%")
+
+            if comp['performance_loss'] < 20:
+                print(f"   • ✅ Bonne performance avec features pré-publication")
+            elif comp['performance_loss'] < 40:
+                print(f"   • ⚠️ Performance acceptable, à améliorer")
+            else:
+                print(f"   • ❌ Performance insuffisante, besoin de plus de features")
+
     # Recommandations
     print(f"\n🚀 RECOMMANDATIONS POUR LA SUITE:")
     print(f"   • Prochaine étape: Augmenter le dataset à 150+ vidéos")
     print(f"   • Optimisation: Tester Gradient Boosting et XGBoost")
-    print(f"   • Features: Ajouter plus de features temporelles et de contenu")
+    print(f"   • Features: Ajouter plus de features visuelles et temporelles")
     print(f"   • Validation: Tester sur de nouveaux comptes")
+    print(f"   • API: Créer l'API de prédiction avec features pré-publication")
 
 
 def main():
     """Main function."""
     parser = argparse.ArgumentParser(
-        description="Analyse des données existantes pour le POC de virality prediction"
+        description="Analyse des données existantes pour le POC de virality prediction (CORRIGÉ)"
     )
 
     parser.add_argument(
@@ -374,7 +525,7 @@ def main():
         # Analyser les corrélations
         correlations = analyze_correlations(df, args.target)
 
-        # Créer le modèle baseline
+        # Créer le modèle baseline (CORRIGÉ)
         model, metrics = create_baseline_model(df, args.target)
 
         # Générer les insights
@@ -389,16 +540,18 @@ def main():
             model_path = Path('models')
             model_path.mkdir(exist_ok=True)
 
-            joblib.dump(model, model_path / 'baseline_virality_model.pkl')
+            joblib.dump(model, model_path /
+                        'pre_publication_virality_model.pkl')
             logger.info(
-                f"Modèle sauvegardé dans {model_path / 'baseline_virality_model.pkl'}")
+                f"Modèle pré-publication sauvegardé dans {model_path / 'pre_publication_virality_model.pkl'}")
 
         # Résumé final
         print("\n" + "="*60)
-        print("✅ ANALYSE TERMINÉE")
+        print("✅ ANALYSE TERMINÉE - LOGIQUE CORRIGÉE")
         print("="*60)
         if metrics:
-            print(f"📊 Performance du modèle: R² = {metrics['test_r2']:.3f}")
+            print(
+                f"📊 Performance du modèle pré-publication: R² = {metrics['test_r2']:.3f}")
         print(f"🎯 Prochaine étape: Augmenter le dataset et optimiser le modèle")
 
     except Exception as e:
