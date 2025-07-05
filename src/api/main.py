@@ -8,6 +8,7 @@
 📚 Documentation: https://railway.app/docs
 🔗 OpenAPI: /docs
 """
+from .feature_integration import feature_manager
 from .ml_model import ml_manager
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -98,6 +99,8 @@ async def health_check():
         "version": "1.0.0",
         "model_loaded": ml_manager.model is not None,
         "feature_extractor_loaded": ml_manager.feature_extractor is not None,
+        "feature_system_available": feature_manager.is_available(),
+        "features_count": feature_manager.get_feature_count(),
         "environment": os.getenv("RAILWAY_ENVIRONMENT", "development")
     }
 
@@ -140,19 +143,19 @@ async def extract_features(video_file: UploadFile = File(...)):
         if video_file.filename and not video_file.filename.endswith(('.mp4', '.mov', '.avi')):
             raise HTTPException(400, "Format vidéo non supporté")
 
-        # TODO: Implémenter extraction features
-        # features = feature_extractor.extract(video_file)
-
-        # Mock pour test DDD
-        features = {
-            "video_duration": 30.0,
+        # Données vidéo mock pour test DDD
+        video_data = {
+            "duration": 30.0,
             "hashtag_count": 5,
-            "human_presence": True,
-            "eye_contact": True,
-            "color_vibrancy": 0.75,
-            "music_energy": 0.8,
-            "audience_connection_score": 0.85
+            "text": "Vidéo de test",
+            "playCount": 1000,
+            "diggCount": 150,
+            "commentCount": 25,
+            "shareCount": 10
         }
+
+        # Extraction avec le gestionnaire de features
+        features = feature_manager.extract_features(video_data)
 
         return FeatureExtraction(
             features=features,
@@ -175,7 +178,7 @@ async def predict_virality(features: Dict[str, object]):
     try:
         # Utilisation du gestionnaire ML
         prediction_result = ml_manager.predict(features)
-        
+
         return ViralityPrediction(**prediction_result)
 
     except Exception as e:
