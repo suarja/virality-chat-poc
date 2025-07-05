@@ -376,6 +376,45 @@ def run_feature_extraction_phase(
         raise
 
 
+def aggregate_features_after_extraction(output_dir: Path, feature_set: str):
+    """Aggregate features after extraction phase."""
+    logger = logging.getLogger(__name__)
+
+    try:
+        # Import the aggregation function
+        from scripts.aggregate_features import aggregate_features
+
+        # Get dataset directory from output_dir
+        dataset_dir = output_dir.parent
+
+        logger.info(f"🔄 Aggregating features for {feature_set}...")
+
+        # Aggregate features
+        aggregated_df = aggregate_features(
+            dataset_dir=str(dataset_dir),
+            feature_set=feature_set,
+            output_file=str(output_dir / f"aggregated_{feature_set}.csv"),
+            add_account_column=True
+        )
+
+        logger.info(
+            f"✅ Features aggregated: {len(aggregated_df)} total features")
+        logger.info(
+            f"   • Accounts: {aggregated_df['account_name'].nunique()}")
+        logger.info(f"   • Features per account:")
+        for account in aggregated_df['account_name'].unique():
+            count = len(
+                aggregated_df[aggregated_df['account_name'] == account])
+            logger.info(f"     - {account}: {count} features")
+
+        return aggregated_df
+
+    except Exception as e:
+        logger.warning(f"⚠️ Feature aggregation failed: {e}")
+        logger.info("   Continuing without aggregation...")
+        return None
+
+
 def process_batch(
     accounts: List[str],
     args: argparse.Namespace,
@@ -468,6 +507,18 @@ def process_batch(
                 tracker.mark_account_failed(
                     account, "features", f"Feature extraction failed: {str(e)}")
                 continue
+
+        # 4. Automatic Feature Aggregation
+        if args.feature_system == 'modular':
+            logger.info("🔄 Starting automatic feature aggregation...")
+            aggregated_df = aggregate_features_after_extraction(
+                features_dir, args.feature_set
+            )
+            if aggregated_df is not None:
+                logger.info("✅ Feature aggregation completed successfully")
+            else:
+                logger.warning(
+                    "⚠️ Feature aggregation failed, but pipeline continues")
 
         return True
 
