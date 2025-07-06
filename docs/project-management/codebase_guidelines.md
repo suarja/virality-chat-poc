@@ -1,4 +1,57 @@
-# 🏗️ Codebase Reorganization Plan - TikTok Virality Prediction
+# 🏗️ Codebase Guidelines - TikTok Virality Prediction POC
+
+## 🎯 **Règles de Développement (80/20)**
+
+### **🏆 Philosophie Simple**
+
+> _"Keep it simple, document everything, learn from each iteration"_
+
+### **📋 Règles Obligatoires**
+
+#### **1. 🔄 Commits Réguliers**
+
+- ✅ **Commiter à chaque feature complète** (pas de gros commits)
+- ✅ **Messages clairs** : "feat: add model versioning" / "fix: correct feature extraction"
+- ✅ **Jamais de code non commité** en fin de session
+
+#### **2. 📚 Documentation Systématique**
+
+- ✅ **Vérifier la codebase** avant de créer un fichier
+- ✅ **Consulter les README** existants dans chaque dossier
+- ✅ **Mettre à jour** les README correspondants
+- ✅ **Demander confirmation** si doute sur l'emplacement
+
+#### **3. 🏗️ Structure Simple**
+
+- ✅ **Une seule API flagship** (pas de multi-environnement complexe)
+- ✅ **Changement de modèle** = une variable à modifier
+- ✅ **Tests validés** avant déploiement production
+- ✅ **Documentation à chaque itération**
+
+#### **4. 🎓 Approche Éducative**
+
+- ✅ **Expliquer chaque concept** ML utilisé
+- ✅ **Contexte réel** pour chaque décision
+- ✅ **Progression logique** (simple → complexe)
+- ✅ **Exemples pratiques** du projet TikTok
+
+#### **5. 🔬 Approche Scientifique**
+
+- ✅ **Hypothèses claires** pour chaque itération
+- ✅ **Variables expérimentales** documentées
+- ✅ **Protocole reproductible** pour chaque test
+- ✅ **Insights documentés** systématiquement
+- ✅ **Template d'itération** utilisé pour chaque expérience
+
+### **🚫 Règles Anti-Complexité**
+
+- ❌ **Pas de sur-ingénierie** (80/20 rule)
+- ❌ **Pas de fichiers sans documentation**
+- ❌ **Pas de duplication** de fonctionnalités
+- ❌ **Pas de changements** sans tests
+- ❌ **Pas d'expérimentation** sans protocole
+
+---
 
 ## 🎯 **Objectives**
 
@@ -240,4 +293,76 @@ FastAPI (Web Framework)
 [Progressive learning path through this folder]
 ```
 
+---
+
+## 🔄 **Workflow de Développement**
+
+### **Avant de Commencer**
+
+1. **Lire** les guidelines
+2. **Vérifier** la structure existante
+3. **Consulter** les README pertinents
+4. **Planifier** les changements
+
+### **Pendant le Développement**
+
+1. **Documenter** chaque étape
+2. **Tester** régulièrement
+3. **Commiter** fréquemment
+4. **Mettre à jour** les README
+
+### **Après le Développement**
+
+1. **Valider** les tests
+2. **Documenter** les changements
+3. **Mettre à jour** la documentation
+4. **Commiter** final
+
+---
+
+## 🔬 **Workflow d'Itération Scientifique**
+
+### **Avant de Commencer une Itération**
+1. **Copier le template**: `cp docs/iterations/template_iteration.md docs/iterations/ITER_XXX_description.md`
+2. **Définir les hypothèses**: Basées sur les insights précédents
+3. **Planifier les variables**: Constantes vs manipulées
+4. **Valider le protocole**: Avec l'équipe
+
+### **Pendant l'Itération**
+1. **Suivre le protocole**: Phase par phase
+2. **Documenter les résultats**: Métriques et insights
+3. **Créer le contenu**: TikTok et documentation
+4. **Tester l'API**: Validation end-to-end
+
+### **Après l'Itération**
+1. **Analyser les résultats**: Comparaison avec objectifs
+2. **Mettre à jour la documentation**: Tous les fichiers concernés
+3. **Planifier la suivante**: Basée sur les insights
+4. **Commiter avec message clair**: "feat: ITER_XXX - [description]"
+
+### **Références Itérations**
+- **Template**: `docs/iterations/template_iteration.md`
+- **README Itérations**: `docs/iterations/README.md`
+- **Itération Actuelle**: `docs/iterations/ITER_001_initial_poc.md`
+
+---
+
+## 📊 **Checklist de Qualité**
+
+### **Avant Commit**
+
+- [ ] Code fonctionne localement
+- [ ] Tests passent
+- [ ] Documentation mise à jour
+- [ ] README mis à jour si nécessaire
+- [ ] Message de commit clair
+
+### **Avant Déploiement**
+
+- [ ] Tests de régression passent
+- [ ] Performance acceptable
+- [ ] Documentation complète
+- [ ] Variables d'environnement configurées
+
 _Plan created on July 5, 2025 - Educational codebase reorganization for TikTok Virality Prediction POC_
+_Updated on July 6, 2025 - Added development rules and 80/20 philosophy_

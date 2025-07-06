@@ -24,13 +24,19 @@ Cette documentation vous guide à travers le projet TikTok Virality Prediction a
 
 ### **🔬 Niveau Intermédiaire - Exploration**
 
-#### **3. Comprendre les Features**
+#### **3. Itérations Scientifiques**
+
+- [**Approche méthodologique**](iterations/README.md) - Comment mener les expériences
+- [**Template d'itération**](iterations/template_iteration.md) - Protocole standard
+- [**ITER_001: POC Initial**](iterations/ITER_001_initial_poc.md) - Première expérience (R² = 0.457)
+
+#### **4. Comprendre les Features**
 
 - [**Système modulaire**](reflection/feature_engineering/README.md) - Comment extraire les features
-- [**34 features avancées**](reflection/feature_engineering/comprehensive_feature_engineering.md) - Détail de chaque feature
+- [**16 features compatibles**](reflection/feature_engineering/comprehensive_feature_engineering.md) - Détail de chaque feature
 - [**Optimisation**](reflection/feature_engineering/feature_engineering_optimization.md) - Améliorer les performances
 
-#### **4. Analyse des Données**
+#### **5. Analyse des Données**
 
 - [**Pipeline de données**](pipeline.md) - Comment les données circulent
 - [**Scraping TikTok**](reflection/development_phases/features_tracking.md) - Collecter les données
