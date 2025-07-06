@@ -11,6 +11,7 @@
 from .tiktok_scraper_integration import tiktok_scraper_integration
 from .feature_integration import feature_manager
 from .ml_model import ml_manager
+from .gemini_integration import gemini_service
 from .simulation_endpoint import TikTokSimulationService, SimulationRequest, SimulationResponse
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -27,7 +28,7 @@ logger = logging.getLogger(__name__)
 # FastAPI Configuration with Swagger UI
 app = FastAPI(
     title="TikTok Virality Prediction API",
-    description="Production API for TikTok virality prediction based on 34 advanced features",
+    description="Production API for TikTok virality prediction based on 34 advanced features with Gemini AI analysis",
     version="1.0.0",
     docs_url=None,  # Disable default docs
     redoc_url="/redoc"
@@ -91,6 +92,10 @@ class TikTokURLRequest(BaseModel):
         default=True,
         description="Use cached data if available (recommended for testing)"
     )
+    use_gemini: bool = Field(
+        default=True,
+        description="Use Gemini AI for advanced video analysis"
+    )
 
 
 class TikTokProfileRequest(BaseModel):
@@ -99,6 +104,10 @@ class TikTokProfileRequest(BaseModel):
     use_cache: bool = Field(
         default=True,
         description="Use cached data if available"
+    )
+    use_gemini: bool = Field(
+        default=True,
+        description="Use Gemini AI for advanced video analysis"
     )
 
 
@@ -110,6 +119,7 @@ class TikTokAnalysis(BaseModel):
     analysis_time: float
     status: str
     cache_used: bool = False
+    gemini_used: bool = False
 
 
 # Import ML manager
@@ -136,6 +146,12 @@ async def startup_event():
         else:
             print("⚠️ Feature extractor not found - Using mocks")
 
+        # Check Gemini availability
+        if gemini_service.is_available():
+            print("✅ Gemini AI integration available")
+        else:
+            print("⚠️ Gemini AI not available - Using mocks")
+
     except Exception as e:
         print(f"⚠️ Model loading error: {e}")
 
@@ -149,6 +165,7 @@ async def root():
         "status": "active",
         "r2_score": 0.457,
         "features_count": 34,
+        "gemini_available": gemini_service.is_available(),
         "docs": "/docs",
         "health": "/health",
         "simulation": "/simulate-virality"
@@ -166,6 +183,7 @@ async def health_check():
         "feature_system_available": feature_manager.is_available(),
         "features_count": feature_manager.get_feature_count(),
         "tiktok_scraper_available": tiktok_scraper_integration.is_available(),
+        "gemini_available": gemini_service.is_available(),
         "simulation_service_available": True,
         "environment": os.getenv("RAILWAY_ENVIRONMENT", "development")
     }
@@ -176,12 +194,17 @@ async def api_info():
     """Detailed API information"""
     return {
         "name": "TikTok Virality Prediction API",
-        "description": "Production API for TikTok virality prediction",
+        "description": "Production API for TikTok virality prediction with Gemini AI",
         "scientific_basis": {
             "r2_score": 0.457,
             "features_count": 34,
             "prediction_type": "pre_publication",
             "performance_loss": "10.6% vs full features"
+        },
+        "ai_components": {
+            "gemini_ai": gemini_service.is_available(),
+            "ml_model": ml_manager.model is not None,
+            "feature_extraction": feature_manager.is_available()
         },
         "endpoints": {
             "health": "/health - Health check",
@@ -256,17 +279,20 @@ async def predict_virality(features: Dict[str, object]):
 @app.post("/analyze-tiktok-url", response_model=TikTokAnalysis)
 async def analyze_tiktok_url(request: TikTokURLRequest):
     """
-    📊 Analyze existing TikTok video using real engagement data
+    📊 Analyze existing TikTok video using real engagement data and Gemini AI
 
     **Use Case**: "How viral is this existing video and why?"
 
-    This endpoint analyzes an already published TikTok video using real engagement metrics
-    (views, likes, comments, shares) to understand its viral performance and provide
-    insights on what made it successful.
+    This endpoint analyzes an already published TikTok video using:
+    - ✅ Real engagement metrics (views, likes, comments, shares)
+    - ✅ Gemini AI for advanced video content analysis
+    - ✅ 34 advanced features automatically extracted
+    - ✅ ML model trained on pre-publication features (R² = 0.457)
 
     **What you get**:
     - ✅ Current virality score (0-1 scale)
     - ✅ Real engagement data (views, likes, comments, shares)
+    - ✅ Gemini AI content analysis (visual quality, hooks, story elements)
     - ✅ Feature importance analysis
     - ✅ Specific recommendations for improvement
     - ✅ Caching support to avoid repeated scraping
@@ -275,7 +301,8 @@ async def analyze_tiktok_url(request: TikTokURLRequest):
     ```json
     {
       "url": "https://www.tiktok.com/@swarecito/video/7505706702050823446",
-      "use_cache": true
+      "use_cache": true,
+      "use_gemini": true
     }
     ```
 
@@ -290,6 +317,12 @@ async def analyze_tiktok_url(request: TikTokURLRequest):
         "shareCount": 302,
         "hashtags": ["chatgpt", "agent", "prompt"]
       },
+      "features": {
+        "audience_connection_score": 0.75,
+        "visual_quality_score": 0.8,
+        "has_hook": true,
+        "emotional_trigger_count": 3
+      },
       "prediction": {
         "virality_score": 0.75,
         "confidence": 0.85,
@@ -299,6 +332,7 @@ async def analyze_tiktok_url(request: TikTokURLRequest):
         ]
       },
       "cache_used": true,
+      "gemini_used": true,
       "status": "completed"
     }
     ```
@@ -312,8 +346,9 @@ async def analyze_tiktok_url(request: TikTokURLRequest):
     try:
         start_time = datetime.now()
         cache_used = False
+        gemini_used = False
 
-        # Check cache first if enabled
+        # 1. Get video data from TikTok (with caching)
         if request.use_cache:
             cached_data = await tiktok_scraper_integration.get_cached_video_data(request.url)
             if cached_data:
@@ -329,10 +364,24 @@ async def analyze_tiktok_url(request: TikTokURLRequest):
             # Always fetch fresh data
             video_data = await tiktok_scraper_integration.get_video_data_from_url(request.url)
 
-        # Extract features from video data
-        features = await feature_manager.extract_features_from_video_data(video_data)
+        # 2. Run Gemini AI analysis (if enabled)
+        gemini_analysis = None
+        if request.use_gemini and gemini_service.is_available():
+            try:
+                gemini_result = await gemini_service.analyze_video(request.url, use_cache=request.use_cache)
+                if gemini_result and gemini_result.get("success"):
+                    gemini_analysis = gemini_result.get("analysis")
+                    gemini_used = True
+                    logger.info(f"Gemini analysis completed for {request.url}")
+                else:
+                    logger.warning(f"Gemini analysis failed for {request.url}")
+            except Exception as e:
+                logger.warning(f"Gemini analysis error: {e}")
 
-        # Get prediction
+        # 3. Extract features with Gemini analysis
+        features = await feature_manager.extract_features_from_video_data(video_data, gemini_analysis)
+
+        # 4. Get prediction from ML model
         prediction = ml_manager.predict(features)
 
         analysis_time = (datetime.now() - start_time).total_seconds()
@@ -344,7 +393,8 @@ async def analyze_tiktok_url(request: TikTokURLRequest):
             prediction=prediction,
             analysis_time=analysis_time,
             status="completed",
-            cache_used=cache_used
+            cache_used=cache_used,
+            gemini_used=gemini_used
         )
 
     except Exception as e:
@@ -505,17 +555,22 @@ async def simulate_virality(request: SimulationRequest):
     This endpoint simulates different publication scenarios (timing, hashtags, content features)
     to predict which approach would maximize viral potential. Perfect for planning your next video!
 
+    **⚠️ Important**: This is a PRE-PUBLICATION simulation that does NOT use real engagement data.
+    The video URL is only used for content analysis (duration, format, etc.), not for views/likes/comments.
+
     **What you get**:
     - ✅ Best publication time recommendations
     - ✅ Optimal hashtag combinations
     - ✅ Expected virality improvement
     - ✅ Content optimization suggestions
     - ✅ Multiple scenario comparisons
+    - ✅ Caching support for efficiency
 
     **Example Request**:
     ```json
     {
       "video_url": "https://www.tiktok.com/@swarecito/video/7505706702050823446",
+      "use_cache": true,
       "scenarios": [
         {
           "name": "Morning Publication",
@@ -542,12 +597,12 @@ async def simulate_virality(request: SimulationRequest):
     ```json
     {
       "video_url": "https://www.tiktok.com/@swarecito/video/7505706702050823446",
-      "original_virality_score": 0.75,
+      "base_virality_score": 0.65,
       "scenarios": [
         {
           "scenario_name": "Morning Publication",
-          "average_virality_score": 0.82,
-          "best_virality_score": 0.89,
+          "average_virality_score": 0.72,
+          "best_virality_score": 0.79,
           "recommendations": [
             "Publish at optimal hours: 9, 12, 18, 21h",
             "Add trending hashtags for better reach"
@@ -555,8 +610,8 @@ async def simulate_virality(request: SimulationRequest):
         },
         {
           "scenario_name": "Evening Publication",
-          "average_virality_score": 0.91,
-          "best_virality_score": 0.95,
+          "average_virality_score": 0.81,
+          "best_virality_score": 0.85,
           "recommendations": [
             "Friday evening is optimal for this content type",
             "Consider adding call-to-action for engagement"
@@ -564,15 +619,33 @@ async def simulate_virality(request: SimulationRequest):
         }
       ],
       "best_scenario": "Evening Publication",
-      "best_score": 0.91
+      "best_score": 0.81,
+      "summary": {
+        "cache_used": true,
+        "simulation_type": "pre_publication",
+        "improvement_potential": 0.16
+      }
     }
     ```
 
     **Key Differences from Analysis**:
-    - 🔄 **Analysis**: Uses real post-publication data
-    - 🎯 **Simulation**: Predicts pre-publication scenarios
+    - 🔄 **Analysis**: Uses real post-publication data (views, likes, comments)
+    - 🎯 **Simulation**: Predicts pre-publication scenarios (no engagement data)
     - 📊 **Analysis**: "Why did this video go viral?"
     - 🚀 **Simulation**: "When should I publish for maximum virality?"
+
+    **Pre-Publication Features Used**:
+    - ✅ Video duration and format
+    - ✅ Publication timing (hour, day)
+    - ✅ Hashtag strategy
+    - ✅ Content features (overlays, transitions, CTA)
+    - ✅ Engagement multipliers (simulated)
+
+    **No Post-Publication Data Used**:
+    - ❌ Real view counts
+    - ❌ Real like counts
+    - ❌ Real comment counts
+    - ❌ Real share counts
     """
     try:
         return await simulation_service.simulate_virality(request)

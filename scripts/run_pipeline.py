@@ -5,7 +5,6 @@ Complete pipeline script for TikTok virality analysis with batch processing:
 2. Run Gemini analysis
 3. Extract and process features
 """
-from src.features.data_processor import DataProcessor
 from src.scraping.tiktok_scraper import TikTokScraper
 from src.utils.batch_tracker import BatchTracker
 from src.utils.data_validator import DataValidator
@@ -74,8 +73,8 @@ def parse_args():
     parser.add_argument(
         "--feature-system",
         choices=['legacy', 'modular'],
-        default='legacy',
-        help="Feature extraction system to use (default: legacy)"
+        default='modular',
+        help="Feature extraction system to use (default: modular)"
     )
 
     parser.add_argument(
@@ -186,7 +185,7 @@ def run_gemini_phase(videos: List[Dict], account: str, tracker: BatchTracker):
     validator = DataValidator()
 
     try:
-        from scripts.test_gemini import analyze_tiktok_video
+        from src.services.gemini_service import analyze_tiktok_video
 
         date_str = datetime.now().strftime("%Y%m%d")
         # Unified structure: data/dataset_name/gemini_analysis/account/date
@@ -346,13 +345,9 @@ def run_feature_extraction_phase(
                 feature_system = 'legacy'
 
         if feature_system == 'legacy':
-            logger.info("🔧 Using legacy DataProcessor")
-            processor = DataProcessor()
-            features_df, metadata = processor.process_dataset(
-                raw_data_path=raw_data_path,
-                gemini_analysis_dir=analysis_dir,
-                output_dir=output_dir
-            )
+            logger.error(
+                "❌ Legacy DataProcessor not available - using modular system only")
+            raise Exception("Legacy system not available - use modular system")
 
         # Log summary
         if features_df is not None and metadata:

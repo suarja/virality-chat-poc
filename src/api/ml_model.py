@@ -8,6 +8,8 @@ import joblib
 import os
 from typing import Dict, Any, Optional
 import logging
+from pathlib import Path
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 
@@ -18,8 +20,10 @@ class MLModelManager:
     def __init__(self):
         self.model = None
         self.feature_extractor = None
-        self.model_path = "models/virality_model.pkl"
-        self.feature_extractor_path = "models/feature_extractor.pkl"
+        # Updated paths to match actual model files (relative to project root)
+        project_root = Path(__file__).parent.parent.parent
+        self.model_path = project_root / "models/pre_publication_virality_model.pkl"
+        self.feature_extractor_path = project_root / "models/baseline_virality_model.pkl"
 
     def load_model(self) -> bool:
         """Load trained ML model"""
@@ -59,12 +63,33 @@ class MLModelManager:
             return self._mock_prediction(features)
 
         try:
-            # Convert features for model
-            # TODO: Implement real conversion
-            prediction = self.model.predict([list(features.values())])[0]
+            # Convert features to the format expected by the model
+            # The model expects a DataFrame with feature names
+            feature_names = self._get_expected_feature_names()
+            feature_values = []
+
+            for feature_name in feature_names:
+                if feature_name in features:
+                    feature_values.append(features[feature_name])
+                else:
+                    # Use default value for missing features
+                    feature_values.append(0.0)
+
+            # Create DataFrame with proper feature names
+            feature_df = pd.DataFrame([feature_values], columns=feature_names)
+
+            # Make prediction
+            prediction = self.model.predict(feature_df)[0]
+
+            # Normalize prediction to 0-1 range if needed
+            virality_score = float(prediction)
+            if virality_score > 1.0:
+                # If score is too high, normalize it
+                # Simple normalization
+                virality_score = min(virality_score / 1000000, 1.0)
 
             return {
-                "virality_score": float(prediction),
+                "virality_score": virality_score,
                 "confidence": 0.85,
                 "r2_score": 0.457,
                 "features_importance": self._get_feature_importance(),
@@ -73,6 +98,18 @@ class MLModelManager:
         except Exception as e:
             logger.error(f"❌ Prediction error: {e}")
             return self._mock_prediction(features)
+
+    def _get_expected_feature_names(self) -> list:
+        """Get the feature names expected by the model"""
+        # These are the exact 16 features used in the pre-publication model
+        return [
+            'duration', 'hashtag_count', 'estimated_hashtag_count', 'hour_of_day',
+            'day_of_week', 'month', 'visual_quality_score', 'has_hook',
+            'viral_potential_score', 'emotional_trigger_count',
+            'audience_connection_score', 'sound_quality_score',
+            'production_quality_score', 'trend_alignment_score', 'color_vibrancy_score',
+            'video_duration_optimized'
+        ]
 
     def _mock_prediction(self, features: Dict[str, Any]) -> Dict[str, Any]:
         """Mock prediction for testing"""

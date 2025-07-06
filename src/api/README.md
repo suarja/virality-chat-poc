@@ -1,166 +1,146 @@
 # 🚀 TikTok Virality Prediction API
 
-## 📋 Overview
+## 🎯 Overview
 
-This API provides TikTok virality prediction capabilities with two main approaches:
+This API provides two main types of TikTok virality analysis:
 
-1. **📊 Analysis Endpoints** - Analyze existing TikTok videos (post-publication data)
-2. **🎯 Simulation Endpoints** - Predict virality for pre-publication scenarios
+1. **📊 Analysis Endpoints** - Analyze existing videos with real post-publication data
+2. **🎯 Simulation Endpoints** - Simulate pre-publication scenarios for planning
 
-## 🔗 API Endpoints
+## 🔄 Analysis vs Simulation: Key Differences
 
-### **📊 Analysis Endpoints (Post-Publication)**
+### **📊 Analysis Endpoints (Post-Publication Data)**
 
-#### `/analyze-tiktok-url`
+**Use Case**: "Why did this video go viral?"
 
-Analyzes an existing TikTok video using real engagement data.
-
-**Use Case**: "How viral is this existing video and why?"
-
-**Request**:
-
-```json
-{
-  "url": "https://www.tiktok.com/@swarecito/video/7505706702050823446",
-  "use_cache": true
-}
-```
-
-**Response**:
-
-```json
-{
-  "url": "https://www.tiktok.com/@swarecito/video/7505706702050823446",
-  "video_data": {
-    "playCount": 53000,
-    "diggCount": 1916,
-    "commentCount": 631,
-    "shareCount": 302,
-    "collectCount": 1807,
-    "hashtags": ["chatgpt", "agent", "prompt", "instruction"]
-  },
-  "prediction": {
-    "virality_score": 0.75,
-    "confidence": 0.85,
-    "r2_score": 0.457,
-    "recommendations": [
-      "Optimize publication timing (6-8am, 12-2pm, 6-8pm hours)",
-      "Reduce hashtag count (less is better)",
-      "Add more visual contact with camera"
-    ]
-  },
-  "cache_used": true,
-  "status": "completed"
-}
-```
-
-**What this tells you**:
-
-- ✅ **Current virality score** (0.75 = 75% viral potential)
-- ✅ **Why it's viral** (feature importance analysis)
-- ✅ **How to improve** (specific recommendations)
-- ✅ **Real engagement data** (views, likes, comments, shares)
-
-#### `/analyze-tiktok-profile`
-
-Analyzes multiple videos from a TikTok profile.
-
-**Use Case**: "What makes this creator's videos viral?"
-
-### **🎯 Simulation Endpoints (Pre-Publication)**
-
-#### `/simulate-virality`
-
-Simulates different publication scenarios for a video.
-
-**Use Case**: "When should I publish this video for maximum virality?"
-
-**Request**:
-
-```json
-{
-  "video_url": "https://www.tiktok.com/@swarecito/video/7505706702050823446",
-  "scenarios": [
-    {
-      "name": "Morning Publication",
-      "description": "Publish at 9am on Monday",
-      "publication_hour": 9,
-      "publication_day": "monday",
-      "hashtags": ["fyp", "viral", "trending"],
-      "engagement_multiplier": 1.2
-    },
-    {
-      "name": "Evening Publication",
-      "description": "Publish at 8pm on Friday",
-      "publication_hour": 20,
-      "publication_day": "friday",
-      "hashtags": ["fyp", "comedy", "funny"],
-      "engagement_multiplier": 1.5
-    }
-  ],
-  "simulation_count": 5
-}
-```
-
-**Response**:
-
-```json
-{
-  "video_url": "https://www.tiktok.com/@swarecito/video/7505706702050823446",
-  "original_virality_score": 0.75,
-  "scenarios": [
-    {
-      "scenario_name": "Morning Publication",
-      "average_virality_score": 0.82,
-      "best_virality_score": 0.89,
-      "recommendations": [
-        "Publish at optimal hours: 9, 12, 18, 21h",
-        "Add trending hashtags for better reach"
-      ]
-    },
-    {
-      "scenario_name": "Evening Publication",
-      "average_virality_score": 0.91,
-      "best_virality_score": 0.95,
-      "recommendations": [
-        "Friday evening is optimal for this content type",
-        "Consider adding call-to-action for engagement"
-      ]
-    }
-  ],
-  "best_scenario": "Evening Publication",
-  "best_score": 0.91
-}
-```
-
-**What this tells you**:
-
-- ✅ **Best publication time** (Friday 8pm)
-- ✅ **Expected virality improvement** (0.75 → 0.91)
-- ✅ **Optimal hashtags** for your content
-- ✅ **Engagement strategies** to maximize reach
-
-## 🔄 Analysis vs Simulation: When to Use What?
-
-### **📊 Use Analysis Endpoints When:**
-
-- ✅ You have an existing TikTok video
-- ✅ You want to understand why it went viral (or didn't)
-- ✅ You want to analyze real engagement data
-- ✅ You're doing competitor research
+- ✅ **Uses real engagement data** (views, likes, comments, shares)
+- ✅ **Analyzes existing videos** that have already been published
+- ✅ **Explains current performance** with feature importance
+- ✅ **Provides actionable insights** for future content
+- ✅ **Caching supported** for efficiency
 
 **Example**: "Why did @swarecito's ChatGPT video get 53k views?"
 
-### **🎯 Use Simulation Endpoints When:**
+### **🎯 Simulation Endpoints (Pre-Publication Scenarios)**
 
-- ✅ You're planning to publish a video
-- ✅ You want to optimize publication timing
-- ✅ You want to test different hashtag strategies
-- ✅ You want to predict virality before publishing
+**Use Case**: "When should I publish this video for maximum virality?"
+
+- ✅ **Simulates pre-publication scenarios** (no real engagement data)
+- ✅ **Tests different publication times** and hashtag strategies
+- ✅ **Predicts optimal conditions** for viral potential
+- ✅ **Provides planning recommendations** for content creators
+- ✅ **Caching supported** for base video data only
 
 **Example**: "When should I publish my new video for maximum virality?"
 
-## 📈 Understanding the Response
+## 📊 Analysis Endpoints
+
+### **Analyze Single Video**
+
+```bash
+curl -X POST "http://localhost:8000/analyze-tiktok-url" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://www.tiktok.com/@swarecito/video/7505706702050823446",
+    "use_cache": true
+  }'
+```
+
+**What you get**:
+
+- ✅ Current virality score (0.75 = 75% viral potential)
+- ✅ Real engagement data (views, likes, comments)
+- ✅ Feature importance analysis
+- ✅ Specific improvement recommendations
+- ✅ Caching information (`cache_used: true`)
+
+### **Analyze Profile**
+
+```bash
+curl -X POST "http://localhost:8000/analyze-tiktok-profile" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "swarecito",
+    "max_videos": 10,
+    "use_cache": true
+  }'
+```
+
+**What you get**:
+
+- ✅ Profile-level virality analysis
+- ✅ Multiple video comparison
+- ✅ Content pattern insights
+- ✅ Audience engagement trends
+
+## 🎯 Simulation Endpoints
+
+### **Simulate Publication Scenarios**
+
+```bash
+curl -X POST "http://localhost:8000/simulate-virality" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "video_url": "https://www.tiktok.com/@swarecito/video/7505706702050823446",
+    "use_cache": true,
+    "scenarios": [
+      {
+        "name": "Morning Publication",
+        "description": "Publish at 9am on Monday",
+        "publication_hour": 9,
+        "publication_day": "monday",
+        "hashtags": ["fyp", "viral", "trending"],
+        "engagement_multiplier": 1.2
+      },
+      {
+        "name": "Evening Publication",
+        "description": "Publish at 8pm on Friday",
+        "publication_hour": 20,
+        "publication_day": "friday",
+        "hashtags": ["fyp", "comedy", "funny"],
+        "engagement_multiplier": 1.5
+      }
+    ],
+    "simulation_count": 5
+  }'
+```
+
+**What you get**:
+
+- ✅ Best publication time recommendations
+- ✅ Optimal hashtag combinations
+- ✅ Expected virality improvement
+- ✅ Content optimization suggestions
+- ✅ Multiple scenario comparisons
+- ✅ Caching information (`cache_used: true`)
+
+## 🔧 Caching System
+
+### **How Caching Works**
+
+Both endpoints support caching for efficiency:
+
+```json
+{
+  "cache_used": true,
+  "simulation_type": "pre_publication" // Only for simulation
+}
+```
+
+### **Analysis Endpoint Caching**
+
+- ✅ Caches complete video data (content + engagement)
+- ✅ Avoids repeated scraping of same videos
+- ✅ Returns `cache_used: true` when using cached data
+
+### **Simulation Endpoint Caching**
+
+- ✅ Caches base video data (content only, no engagement)
+- ✅ Uses cached data for content analysis
+- ✅ Simulates scenarios without real engagement data
+- ✅ Returns `cache_used: true` when using cached data
+
+## 📈 Score Interpretation
 
 ### **Virality Score (0-1)**
 
@@ -182,7 +162,14 @@ Simulates different publication scenarios for a video.
 
 ## 🚀 Quick Start
 
-### **1. Analyze an Existing Video**
+### **1. Start the API**
+
+```bash
+cd src
+python -m uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+### **2. Test Analysis (Post-Publication)**
 
 ```bash
 curl -X POST "http://localhost:8000/analyze-tiktok-url" \
@@ -193,63 +180,77 @@ curl -X POST "http://localhost:8000/analyze-tiktok-url" \
   }'
 ```
 
-### **2. Simulate Publication Scenarios**
+### **3. Test Simulation (Pre-Publication)**
 
 ```bash
 curl -X POST "http://localhost:8000/simulate-virality" \
   -H "Content-Type: application/json" \
   -d '{
     "video_url": "https://www.tiktok.com/@swarecito/video/7505706702050823446",
+    "use_cache": true,
     "scenarios": [
       {
-        "name": "Optimal Timing",
-        "publication_hour": 9,
+        "name": "Test Scenario",
+        "description": "Test publication scenario",
+        "publication_hour": 12,
         "publication_day": "monday",
-        "hashtags": ["fyp", "viral"]
+        "hashtags": ["fyp", "viral"],
+        "engagement_multiplier": 1.0
       }
-    ]
+    ],
+    "simulation_count": 3
   }'
 ```
 
-## 🔧 Configuration
-
-### **Environment Variables**
-
-```bash
-APIFY_API_TOKEN=your_apify_token  # For TikTok scraping
-RAILWAY_ENVIRONMENT=production     # For deployment
-```
-
-### **Caching**
-
-- **`use_cache: true`**: Use cached data (faster, no scraping)
-- **`use_cache: false`**: Always scrape fresh data (slower, up-to-date)
-
-## 📚 API Documentation
+## 📚 Documentation
 
 - **Swagger UI**: `http://localhost:8000/docs`
 - **ReDoc**: `http://localhost:8000/redoc`
 - **Health Check**: `http://localhost:8000/health`
 
-## 🎯 Production Usage
+## 🎯 When to Use Each Endpoint
 
-### **For Content Creators**
+### **Use Analysis When:**
 
-1. Use `/simulate-virality` to plan your next video
-2. Use `/analyze-tiktok-url` to understand your best-performing content
-3. Follow the recommendations to optimize future videos
+- ✅ You have an existing TikTok video
+- ✅ You want to understand why it went viral (or didn't)
+- ✅ You want to analyze real engagement data
+- ✅ You're doing competitive research
 
-### **For Agencies**
+### **Use Simulation When:**
 
-1. Use `/analyze-tiktok-profile` to analyze client accounts
-2. Use `/simulate-virality` to create content strategies
-3. Track performance improvements over time
+- ✅ You're planning to publish a video
+- ✅ You want to optimize publication timing
+- ✅ You want to test different hashtag strategies
+- ✅ You want to predict virality before publishing
 
-### **For Researchers**
+## 🔧 Technical Details
 
-1. Use analysis endpoints for data collection
-2. Use simulation endpoints for hypothesis testing
-3. Export data for further analysis
+### **Pre-Publication Features (Simulation)**
+
+- ✅ Video duration and format
+- ✅ Publication timing (hour, day)
+- ✅ Hashtag strategy
+- ✅ Content features (overlays, transitions, CTA)
+- ✅ Engagement multipliers (simulated)
+
+### **Post-Publication Features (Analysis)**
+
+- ✅ Real view counts
+- ✅ Real like counts
+- ✅ Real comment counts
+- ✅ Real share counts
+- ✅ Engagement ratios
+- ✅ Growth patterns
+
+### **No Post-Publication Data Used in Simulation:**
+
+- ❌ Real view counts
+- ❌ Real like counts
+- ❌ Real comment counts
+- ❌ Real share counts
+
+This ensures true pre-publication simulation without bias from existing performance data.
 
 ---
 

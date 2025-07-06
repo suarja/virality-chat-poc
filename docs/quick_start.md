@@ -9,17 +9,18 @@ Valider rapidement l'idée de prédiction de viralité TikTok en testant le pipe
 ### 1. Test Rapide du Pipeline (avec agrégation automatique)
 
 ```bash
-# Test avec 6 vidéos seulement (agrégation automatique incluse)
-python3 scripts/test_pipeline_with_aggregation.py
+# Test avec 2 vidéos seulement (agrégation automatique incluse)
+python3 scripts/test_pipeline_minimal.py
 ```
 
 **Ce test va :**
 
-- ✅ Scraper 3 vidéos de 1 compte
+- ✅ Scraper 2 vidéos de 1 compte
 - ✅ Analyser avec Gemini AI
 - ✅ Extraire les features
 - ✅ **Agréger automatiquement** les données
 - ✅ Vérifier que tout fonctionne
+- ✅ Tester les endpoints API
 
 ### 2. Analyse des Données Existantes
 
@@ -90,6 +91,7 @@ curl -X POST "http://localhost:8000/simulate-virality" \
   -H "Content-Type: application/json" \
   -d '{
     "video_url": "https://www.tiktok.com/@swarecito/video/7505706702050823446",
+    "use_cache": true,
     "scenarios": [
       {
         "name": "Publication Matin",
@@ -114,10 +116,14 @@ curl -X POST "http://localhost:8000/simulate-virality" \
 
 **Use Case**: "Quand devrais-je publier cette vidéo pour maximiser la viralité?"
 
+**⚠️ Important**: Cette simulation est PRE-PUBLICATION et n'utilise PAS les données d'engagement réelles. L'URL de la vidéo sert uniquement à l'analyse du contenu (durée, format, etc.), pas aux vues/likes/commentaires.
+
 - ✅ Meilleur moment de publication recommandé
 - ✅ Combinaisons de hashtags optimales
 - ✅ Amélioration de viralité attendue
 - ✅ Suggestions d'optimisation de contenu
+- ✅ Support du cache pour l'efficacité
+- ✅ Simulation de scénarios sans biais des données réelles
 
 ## 🔄 Analysis vs Simulation: Quand Utiliser Quoi?
 
@@ -220,7 +226,7 @@ python3 scripts/generate_virality_report.py --video-urls urls.txt
 ### **Erreur de dépendances**
 
 ```bash
-pip install pandas numpy matplotlib scikit-learn seaborn
+pip install pandas numpy matplotlib scikit-learn seaborn google-generativeai
 ```
 
 ### **Erreur de pipeline**
@@ -237,10 +243,25 @@ tail -f logs/errors.log
 
 ```bash
 # Vérifier la clé API
-echo $GEMINI_API_KEY
+echo $GOOGLE_API_KEY
 
-# Tester l'API
+# Tester le service Gemini
 python3 scripts/test_gemini.py
+
+# Vérifier l'architecture des services
+ls -la src/services/
+```
+
+### **Erreur de Features ML**
+
+```bash
+# Tester l'API après correction des features
+python3 scripts/test_api_fixed.py
+
+# Vérifier que l'API utilise les bonnes features (16 au lieu de 34)
+curl -X POST "http://localhost:8000/analyze-tiktok-url" \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://www.tiktok.com/@swarecito/video/7505706702050823446", "use_cache": false}' | jq '.prediction.virality_score'
 ```
 
 ### **Fichier agrégé manquant**
@@ -307,28 +328,32 @@ data/dataset_poc_test_aggregation/
 ## 🎯 Commandes de Test Rapide
 
 ```bash
-# Test minimal avec agrégation automatique (5 minutes)
-python3 scripts/test_pipeline_with_aggregation.py
+# Test minimal avec agrégation automatique (2 minutes)
+python3 scripts/test_pipeline_minimal.py
 
 # Test avec analyse des données existantes (2 minutes)
-python3 scripts/check_poc_data.py --dataset-dir data/dataset_poc_test --aggregate
+python3 scripts/analyze_existing_data.py --dataset-dir data/dataset_poc_test --feature-set comprehensive
 
 # Test complet (30 minutes)
-python3 scripts/run_pipeline.py --dataset poc_validation --batch-size 2 --videos-per-account 10 --max-total-videos 40 --feature-system modular --feature-set comprehensive
+python3 scripts/run_pipeline.py --dataset poc_validation --batch-size 2 --videos-per-account 10 --max-total-videos 40 --feature-set comprehensive
 ```
 
 ## 🔧 Scripts Disponibles
 
 ### **Pipeline et Tests**
 
-- `scripts/test_pipeline_with_aggregation.py` - Test complet avec agrégation automatique
-- `scripts/test_poc_pipeline.py` - Test basique du pipeline
+- `scripts/test_pipeline_minimal.py` - Test complet avec agrégation automatique (recommandé)
 - `scripts/run_pipeline.py` - Pipeline principal
 
 ### **Analyse des Données**
 
 - `scripts/analyze_existing_data.py` - Analyse complète avec ML (recommandé)
 - `scripts/aggregate_features.py` - Agrégation manuelle si nécessaire
+
+### **Services Réutilisables**
+
+- `src/services/gemini_service.py` - Service d'analyse Gemini centralisé
+- `src/services/README.md` - Documentation de l'architecture des services
 
 **Note**: Le script d'analyse transforme automatiquement les dates en features numériques (heure, jour de semaine, etc.) pour optimiser les performances du modèle.
 
@@ -343,5 +368,5 @@ python3 scripts/run_pipeline.py --dataset poc_validation --batch-size 2 --videos
 
 ```bash
 # Commencer maintenant
-python3 scripts/test_pipeline_with_aggregation.py
+python3 scripts/test_pipeline_minimal.py
 ```

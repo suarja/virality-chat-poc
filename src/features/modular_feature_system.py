@@ -648,6 +648,112 @@ class ComprehensiveFeatureSet(BaseFeatureSet):
         return features
 
 
+class ModelCompatibleFeatureSet(BaseFeatureSet):
+    """Feature set compatible avec le modèle ML (exactement 16 features)."""
+
+    def __init__(self):
+        super().__init__(
+            name="model_compatible",
+            description="Features exactement compatibles avec le modèle ML (16 features)"
+        )
+        self.features = [
+            'duration', 'hashtag_count', 'estimated_hashtag_count', 'hour_of_day',
+            'day_of_week', 'month', 'visual_quality_score', 'has_hook',
+            'viral_potential_score', 'emotional_trigger_count',
+            'audience_connection_score', 'sound_quality_score',
+            'production_quality_score', 'trend_alignment_score', 'color_vibrancy_score',
+            'video_duration_optimized'
+        ]
+
+    def extract(self, video_data: Dict, gemini_analysis: Optional[Dict] = None) -> Dict:
+        """Extrait exactement les 16 features attendues par le modèle ML."""
+        features = {}
+
+        # 1. duration
+        features['duration'] = video_data.get(
+            'videoMeta', {}).get('duration', 0)
+
+        # 2. hashtag_count
+        hashtags = [tag['name'] for tag in video_data.get('hashtags', [])]
+        features['hashtag_count'] = len(hashtags)
+
+        # 3. estimated_hashtag_count (même que hashtag_count pour compatibilité)
+        features['estimated_hashtag_count'] = features['hashtag_count']
+
+        # 4-6. Features temporelles
+        post_time = video_data.get('createTimeISO', '')
+        if post_time:
+            import pandas as pd
+            post_time = pd.to_datetime(post_time)
+            features['hour_of_day'] = post_time.hour
+            features['day_of_week'] = post_time.dayofweek
+            features['month'] = post_time.month
+        else:
+            features['hour_of_day'] = 12  # Default
+            features['day_of_week'] = 0   # Monday
+            features['month'] = 1         # January
+
+        # 7-16. Features Gemini (avec fallbacks)
+        if gemini_analysis:
+            # visual_quality_score
+            visual = gemini_analysis.get('visual_analysis', {})
+            features['visual_quality_score'] = 0.8 if 'high quality' in str(
+                visual).lower() else 0.6
+
+            # has_hook
+            content = gemini_analysis.get('content_structure', {})
+            features['has_hook'] = 1.0 if 'hook' in str(
+                content).lower() else 0.0
+
+            # viral_potential_score
+            engagement = gemini_analysis.get('engagement_factors', {})
+            features['viral_potential_score'] = 0.7 if 'viral' in str(
+                engagement).lower() else 0.5
+
+            # emotional_trigger_count
+            features['emotional_trigger_count'] = 3 if 'emotional' in str(
+                engagement).lower() else 1
+
+            # audience_connection_score
+            features['audience_connection_score'] = 0.7 if 'connection' in str(
+                engagement).lower() else 0.5
+
+            # sound_quality_score
+            technical = gemini_analysis.get('technical_elements', {})
+            features['sound_quality_score'] = 0.8 if 'sound' in str(
+                technical).lower() else 0.6
+
+            # production_quality_score
+            features['production_quality_score'] = 0.8 if 'quality' in str(
+                technical).lower() else 0.6
+
+            # trend_alignment_score
+            trend = gemini_analysis.get('trend_alignment', {})
+            features['trend_alignment_score'] = 0.6 if 'trend' in str(
+                trend).lower() else 0.4
+
+            # color_vibrancy_score
+            features['color_vibrancy_score'] = 0.7 if 'color' in str(
+                visual).lower() else 0.5
+
+            # video_duration_optimized
+            features['video_duration_optimized'] = 1.0 if 15 <= features['duration'] <= 60 else 0.0
+        else:
+            # Fallbacks si pas d'analyse Gemini
+            features['visual_quality_score'] = 0.6
+            features['has_hook'] = 0.0
+            features['viral_potential_score'] = 0.5
+            features['emotional_trigger_count'] = 1
+            features['audience_connection_score'] = 0.5
+            features['sound_quality_score'] = 0.6
+            features['production_quality_score'] = 0.6
+            features['trend_alignment_score'] = 0.4
+            features['color_vibrancy_score'] = 0.5
+            features['video_duration_optimized'] = 1.0 if 15 <= features['duration'] <= 60 else 0.0
+
+        return features
+
+
 class FeatureRegistry:
     """Registre central des feature sets disponibles."""
 
@@ -661,6 +767,7 @@ class FeatureRegistry:
         self.register_feature_set(GeminiBasicFeatureSet())
         self.register_feature_set(VisualGranularFeatureSet())
         self.register_feature_set(ComprehensiveFeatureSet())
+        self.register_feature_set(ModelCompatibleFeatureSet())
 
     def register_feature_set(self, feature_set: BaseFeatureSet):
         """Enregistre un feature set."""
