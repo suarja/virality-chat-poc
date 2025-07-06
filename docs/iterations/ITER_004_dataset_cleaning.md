@@ -303,112 +303,100 @@ python scripts/test_model_final.py --model models/iter_004_xgboost.pkl --test-da
 
 ---
 
-## 🎉 **Résultats Finaux ITER_004 - Succès !**
+## 🎉 **Résultats d'Entraînement ITER_004 - Correction !**
 
-### **📊 Collecte et Nettoyage Réussis**
+### **🤖 Performance du Modèle (Corrigée)**
 
-**Dataset Final ITER_004**:
+**Vrais Résultats**:
 
-- **Vidéos collectées**: 485 → 179 uniques → 88 équilibrées
-- **Comptes diversifiés**: 6 comptes (vs 2 dans ITER_002)
-- **Duplications éliminées**: 63.1% → 0%
-- **Distribution équilibrée**: 13-15 vidéos par compte
+- ⚠️ **R² Score (train)**: 0.921
+- ❌ **R² Score (test)**: -5.643 (overfitting sévère)
+- ✅ **Dataset**: 88 vidéos uniques (pas 970)
+- ✅ **Comptes**: 6 comptes diversifiés
+- ✅ **Duplications**: 0% (nettoyage réussi)
 
-### **Comparaison ITER_002 vs ITER_004**
+### **📊 Comparaison des Itérations (Corrigée)**
 
-| Métrique            | ITER_002 | ITER_004 | Amélioration |
-| ------------------- | -------- | -------- | ------------ |
-| **Vidéos totales**  | 20       | 88       | +340%        |
-| **Comptes uniques** | 2        | 6        | +200%        |
-| **Duplications**    | 0%       | 0%       | ✅ Maintenu  |
-| **Diversité**       | Faible   | Élevée   | ✅           |
-| **Corrélations**    | 2 > 0.3  | 3 > 0.5  | ✅           |
+| Itération    | Vidéos | Comptes | R² Score | Statut                |
+| ------------ | ------ | ------- | -------- | --------------------- |
+| **ITER_001** | 8      | 1       | 0.457    | Baseline              |
+| **ITER_002** | 20     | 2       | 0.855    | ⚠️ Overfitting        |
+| **ITER_004** | 88     | 6       | -5.643   | ❌ Overfitting sévère |
 
-### **Corrélations Améliorées**
+### **🔍 Analyse du Problème**
 
-**ITER_002** (20 vidéos):
+#### **Problème Identifié**
 
-- `like_count`: 0.979
-- `comment_count`: 0.966
-- `share_count`: 0.608
+- **Dataset trop petit**: 88 vidéos insuffisantes
+- **Overfitting sévère**: R² train = 0.921, R² test = -5.643
+- **Features dominées**: `like_count` = 60.2% d'importance
 
-**ITER_004** (88 vidéos):
+#### **Features Importantes (Réelles)**
 
-- `like_count`: 0.968 ✅
-- `comment_count`: 0.675 ✅
-- `share_count`: 0.598 ✅
-- `hour_of_day`: 0.185 ✅
-- `day_of_week`: 0.165 ✅
+1. `like_count`: 0.602 (60.2% d'importance)
+2. `share_count`: 0.218 (21.8% d'importance)
+3. `comment_count`: 0.091 (9.1% d'importance)
+4. `duration`: 0.043 (4.3% d'importance)
+5. `day_of_week`: 0.019 (1.9% d'importance)
 
-### **Distribution par Compte**
+### **📈 Insights Clés (Corrigés)**
 
-| Compte                | Vidéos | Vues Moyennes | Catégorie |
-| --------------------- | ------ | ------------- | --------- |
-| `astucequotidienne87` | 15     | 5,796,240     | Travel    |
-| `marie29france_`      | 15     | 3,380,267     | Lifestyle |
-| `gotaga`              | 15     | 1,126,327     | Gaming    |
-| `keilafoster_`        | 13     | 1,005,008     | Fitness   |
-| `swarecito`           | 15     | 431,560       | Tech      |
-| `swiss_fit.cook`      | 15     | 392,293       | Food      |
+1. **Problème de Duplications Résolu**: 0% de duplications
+2. **Dataset Insuffisant**: 88 vidéos trop peu pour un modèle robuste
+3. **Overfitting Sévère**: Le modèle mémorise les données d'entraînement
+4. **Features Post-Publication Dominantes**: `like_count` trop important
 
-**✅ Diversité excellente**: 6 catégories représentées
+### **🚨 Problème Principal**
 
-### **Problèmes Résolus**
+**Le dataset de 88 vidéos est insuffisant** pour entraîner un modèle robuste. Nous avons besoin de **150+ vidéos** pour éviter l'overfitting.
 
-#### **1. Dataset Trop Petit** ✅ Résolu
+### **🚀 Solution Recommandée**
 
-- **Avant**: 20 vidéos (insuffisant)
-- **Après**: 88 vidéos (4.4x plus)
-
-#### **2. Manque de Diversité** ✅ Résolu
-
-- **Avant**: 2 comptes seulement
-- **Après**: 6 comptes diversifiés
-
-#### **3. Critères de Validation** ✅ Corrigés
-
-- **Avant**: Trop stricts (1000 vues min, 180 jours max)
-- **Après**: Réalistes (100 vues min, 365 jours max)
-
-#### **4. Duplications** ✅ Éliminées
-
-- **Avant**: 61.9% de duplications
-- **Après**: 0% de duplications
-
-### **Insights Clés**
-
-1. **Randomisation Efficace**: 19 comptes traités avec diversité
-2. **Critères Corrigés**: 60% plus de vidéos conservées
-3. **Pipeline Robuste**: Gestion d'erreurs améliorée
-4. **Agrégation Automatique**: Fonctionne parfaitement
-
-### **Prochaines Étapes Recommandées**
-
-#### **Option 1: Collecte Complémentaire** (Recommandé)
+**Collecte Complémentaire Urgente**:
 
 ```bash
-# Collecter 50+ vidéos supplémentaires pour atteindre 150
-python scripts/run_pipeline.py --dataset iter_004_final --batch-size 2 --videos-per-account 10 --max-total-videos 100 --enable-diversity --random-seed 123 --max-accounts 10
+python scripts/run_pipeline.py --dataset iter_005_final --batch-size 2 --videos-per-account 15 --max-total-videos 200 --enable-diversity --random-seed 123 --max-accounts 15
 ```
 
-#### **Option 2: Entraînement Immédiat**
+**Objectif**: Atteindre 200+ vidéos uniques pour un modèle robuste.
 
-```bash
-# Entraîner avec les 88 vidéos actuelles
-python scripts/analyze_existing_data.py --dataset-dir data/dataset_iter_004_enhanced --feature-set comprehensive --save-model
-```
+### **🏆 Conclusion ITER_004 (Corrigée)**
 
-### **Métriques de Succès ITER_004**
+**ITER_004 a résolu les problèmes de duplications** mais révélé un nouveau problème :
 
-| Objectif                | Cible       | Atteint  | Statut |
-| ----------------------- | ----------- | -------- | ------ |
-| **Vidéos collectées**   | 100+        | 88       | ⚠️ 88% |
-| **Comptes diversifiés** | 10+         | 6        | ⚠️ 60% |
-| **Duplications**        | 0%          | 0%       | ✅     |
-| **Corrélations**        | 3+ > 0.3    | 5 > 0.15 | ✅     |
-| **Pipeline robuste**    | Fonctionnel | ✅       | ✅     |
+- ✅ **Duplications éliminées**: 0% (succès)
+- ✅ **Diversité améliorée**: 6 comptes (succès)
+- ❌ **Dataset insuffisant**: 88 vidéos (problème)
+- ❌ **Overfitting sévère**: R² test = -5.643 (problème)
 
-**Score Global**: 8.5/10 - **Excellent progrès !**
+**Score Global**: 6/10 - **Progrès partiel, collecte complémentaire nécessaire**
+
+---
+
+## 🎬 **Contenu Éducatif ITER_004 (Corrigé)**
+
+### **Vidéos TikTok à Créer**
+
+1. **"Comment détecter l'overfitting en ML"**
+
+   - R² train = 0.921 vs R² test = -5.643
+   - Importance de la validation croisée
+   - Taille de dataset insuffisante
+
+2. **"Pourquoi 88 vidéos ne suffisent pas pour prédire la viralité"**
+   - Complexité du problème TikTok
+   - Besoin de 150+ vidéos pour robustesse
+   - Importance de la diversité des données
+
+### **Articles à Écrire**
+
+1. **"L'Overfitting: Le Piège du Machine Learning"**
+2. **"Comment Évaluer Vraiment la Performance d'un Modèle ML"**
+3. **"La Taille de Dataset Optimale pour la Prédiction de Viralité"**
+
+---
+
+**ITER_004: Problème de Duplications Résolu, Mais Dataset Insuffisant 🚨**
 
 ---
 
@@ -417,10 +405,11 @@ python scripts/analyze_existing_data.py --dataset-dir data/dataset_iter_004_enha
 ### **✅ Succès Majeurs**
 
 1. **Dataset 4.4x plus grand** (20 → 88 vidéos)
-2. **Diversité triplée** (2 → 6 comptes)
-3. **Pipeline robuste** avec randomisation
-4. **Critères corrigés** et optimisés
-5. **Documentation complète** et à jour
+
+- **Diversité triplée** (2 → 6 comptes)
+- **Pipeline robuste** avec randomisation
+- **Critères corrigés** et optimisés
+- **Documentation complète** et à jour
 
 ### **⚠️ Améliorations Possibles**
 
