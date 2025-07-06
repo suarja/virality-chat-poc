@@ -1,0 +1,18 @@
+Dataset Cleaning Report
+==============================
+
+Original dataset: (485, 21)
+Duplicates removed: 306
+After deduplication: (179, 21)
+Final balanced: (88, 21)
+Videos removed: 397
+Reduction: 81.9%
+
+Account Distribution:
+--------------------
+swiss_fit.cook: 15 videos
+marie29france_: 15 videos
+swarecito: 15 videos
+astucequotidienne87: 15 videos
+gotaga: 15 videos
+keilafoster_: 13 videos

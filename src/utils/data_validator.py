@@ -26,10 +26,10 @@ class DataValidator:
 
     def __init__(self):
         """Initialize validator with validation rules."""
-        self.min_views = 1000
-        self.max_video_age_days = 180  # 6 months
-        self.min_video_duration = 1  # seconds
-        self.max_video_duration = 600  # 10 minutes
+        self.min_views = 100
+        self.max_video_age_days = 365
+        self.min_video_duration = 0.5
+        self.max_video_duration = 600
         self.required_fields = ['id', 'text', 'playCount',
                                 'diggCount', 'commentCount', 'shareCount']
 

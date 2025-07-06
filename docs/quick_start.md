@@ -364,6 +364,48 @@ python3 scripts/run_pipeline.py --dataset poc_validation --batch-size 2 --videos
 - **README API**: `src/api/README.md`
 - **Health Check**: `http://localhost:8000/health`
 
+## 🎲 **Collecte de Données avec Randomisation (ITER_004)**
+
+### **Collecte Simple avec Randomisation**
+
+```bash
+# Collecte de 100 vidéos avec randomisation simple
+python scripts/run_pipeline.py --dataset iter_004_simple --batch-size 3 --videos-per-account 10 --max-total-videos 100 --random-seed 42
+```
+
+### **Collecte Diversifiée par Catégories**
+
+```bash
+# Collecte avec diversité par catégories (recommandé)
+python scripts/run_pipeline.py --dataset iter_004_diverse --batch-size 3 --videos-per-account 10 --max-total-videos 150 --enable-diversity --random-seed 42 --max-accounts 15
+```
+
+### **Nouvelles Options de Randomisation**
+
+| Option               | Description                        | Exemple              |
+| -------------------- | ---------------------------------- | -------------------- |
+| `--random-seed`      | Seed pour reproductibilité         | `--random-seed 123`  |
+| `--enable-diversity` | Active la diversité par catégories | `--enable-diversity` |
+| `--max-accounts`     | Limite le nombre de comptes        | `--max-accounts 10`  |
+
+### **Catégories de Comptes Disponibles**
+
+- **Lifestyle**: @leaelui, @unefille.ia, @lea*mary, @marie29france*
+- **Tech**: @swarecito, @julien.snsn, @david_sepahan
+- **Food**: @swiss_fit.cook, @healthyfood_creation, @pastelcuisine
+- **Gaming**: @gotaga, @domingo, @squeezie, @sosah1.6
+- **Humor**: @athenasol, @isabrunellii, @contiped
+- **Travel**: @loupernaut, @astucequotidienne87
+- **Fitness**: @oceane_dmg
+
+### **Avantages de la Randomisation**
+
+- ✅ **Évite les biais** de sélection séquentielle
+- ✅ **Diversité garantie** par catégories de contenu
+- ✅ **Reproductibilité** avec seed fixe
+- ✅ **Contrôle fin** du nombre de comptes
+- ✅ **Gestion d'erreurs** améliorée
+
 **Prêt à commencer ?** 🚀
 
 ```bash

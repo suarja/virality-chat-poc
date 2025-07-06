@@ -1,2 +1,0 @@
-@leaelui|scraping|2025-07-04T17:19:25.245061|Validation failed: Video 7522161584643263766: Detected sponsored content, No valid videos found in account
-@lea_mary|scraping|2025-07-04T17:19:38.959816|Critical errors: Video unknown: Missing required field: id, Video unknown: Missing video ID, Video unknown: Missing video URL

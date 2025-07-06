@@ -1,0 +1,14 @@
+Dataset Balancing Report
+==============================
+
+Input dataset: (20, 70)
+Output dataset: (20, 70)
+Max videos per account: 10
+
+Account Distribution:
+--------------------
+marie29france_: 10 videos
+swiss_fit.cook: 10 videos
+
+Total unique accounts: 2
+Average videos per account: 10.0

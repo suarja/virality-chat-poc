@@ -4,6 +4,11 @@ Complete pipeline script for TikTok virality analysis with batch processing:
 1. Scrape TikTok videos in batches
 2. Run Gemini analysis
 3. Extract and process features
+
+🎯 ITER_004 Improvements:
+- Randomized account selection for better diversity
+- Improved batch processing with account rotation
+- Better error handling and retry logic
 """
 from src.scraping.tiktok_scraper import TikTokScraper
 from src.utils.batch_tracker import BatchTracker
@@ -14,13 +19,92 @@ import json
 import logging
 import sys
 import time
+import random
 from pathlib import Path
 from datetime import datetime
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Optional
 
 # Add project root to path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
+
+
+def get_randomized_accounts(accounts: List[str], max_accounts: Optional[int] = None, seed: Optional[int] = None) -> List[str]:
+    """
+    Get a randomized list of accounts for better diversity.
+
+    Args:
+        accounts: List of all available accounts
+        max_accounts: Maximum number of accounts to return (None for all)
+        seed: Random seed for reproducibility
+
+    Returns:
+        Randomized list of accounts
+    """
+    if seed is not None:
+        random.seed(seed)
+
+    # Create a copy to avoid modifying the original list
+    randomized_accounts = accounts.copy()
+    random.shuffle(randomized_accounts)
+
+    if max_accounts is not None:
+        randomized_accounts = randomized_accounts[:max_accounts]
+
+    return randomized_accounts
+
+
+def get_diverse_account_batch(accounts: List[str], batch_size: int, processed_accounts: set,
+                              account_categories: Optional[Dict[str, List[str]]] = None) -> List[str]:
+    """
+    Get a diverse batch of accounts ensuring different categories are represented.
+
+    Args:
+        accounts: List of all available accounts
+        batch_size: Size of the batch to return
+        processed_accounts: Set of already processed accounts
+        account_categories: Dictionary mapping categories to account lists
+
+    Returns:
+        Diverse batch of accounts
+    """
+    # Remove already processed accounts
+    available_accounts = [
+        acc for acc in accounts if acc not in processed_accounts]
+
+    if len(available_accounts) <= batch_size:
+        return available_accounts
+
+    # If we have category information, try to diversify
+    if account_categories is not None:
+        batch = []
+        categories_used = set()
+
+        # First, try to get one account from each category
+        for category, category_accounts in account_categories.items():
+            if len(batch) >= batch_size:
+                break
+
+            # Find accounts in this category that are available
+            category_available = [
+                acc for acc in category_accounts if acc in available_accounts]
+            if category_available and category not in categories_used:
+                selected = random.choice(category_available)
+                batch.append(selected)
+                categories_used.add(category)
+                available_accounts.remove(selected)
+
+        # Fill remaining slots randomly
+        remaining_slots = batch_size - len(batch)
+        if remaining_slots > 0 and available_accounts:
+            additional = random.sample(available_accounts, min(
+                remaining_slots, len(available_accounts)))
+            batch.extend(additional)
+
+        return batch
+
+    # Fallback to simple random selection
+    return random.sample(available_accounts, batch_size)
 
 
 def parse_args():
@@ -83,6 +167,26 @@ def parse_args():
                  'visual_granular', 'comprehensive'],
         default='metadata',
         help="Feature set to use with modular system (default: metadata)"
+    )
+
+    # ITER_004: Randomization and diversity arguments
+    parser.add_argument(
+        "--random-seed",
+        type=int,
+        default=42,
+        help="Random seed for reproducible account selection (default: 42)"
+    )
+
+    parser.add_argument(
+        "--enable-diversity",
+        action="store_true",
+        help="Enable diverse batch selection by account categories"
+    )
+
+    parser.add_argument(
+        "--max-accounts",
+        type=int,
+        help="Maximum number of accounts to process (default: all available)"
     )
 
     return parser.parse_args()
@@ -532,6 +636,17 @@ def main():
     logger.info(
         f"\n{'='*80}\n🚀 Starting TikTok Analysis Pipeline - Dataset: {args.dataset}\n{'='*80}")
 
+    # Define account categories for better diversity
+    account_categories = {
+        "lifestyle": ["@leaelui", "@unefille.ia", "@lea_mary", "@marie29france_", "@lindalys1_"],
+        "tech": ["@swarecito", "@julien.snsn", "@david_sepahan"],
+        "food": ["@swiss_fit.cook", "@healthyfood_creation", "@pastelcuisine"],
+        "gaming": ["@gotaga", "@domingo", "@squeezie", "@sosah1.6"],
+        "humor": ["@athenasol", "@isabrunellii", "@contiped"],
+        "travel": ["@loupernaut", "@astucequotidienne87"],
+        "fitness": ["@oceane_dmg"]
+    }
+
     try:
         # Initialize batch tracker
         tracker = BatchTracker(args.dataset)
@@ -546,33 +661,56 @@ def main():
             logger.info(f"Retrying {len(failed_accounts)} failed accounts")
             accounts_to_process = failed_accounts
         else:
-            # Get accounts from settings
-            accounts_to_process = TIKTOK_ACCOUNTS
+            # Get randomized accounts from settings
+            logger.info(
+                "🎲 Randomizing account selection for better diversity...")
+            accounts_to_process = get_randomized_accounts(
+                TIKTOK_ACCOUNTS,
+                max_accounts=args.max_accounts,  # Use max_accounts argument
+                seed=args.random_seed  # Use random_seed argument
+            )
+            logger.info(
+                f"Selected {len(accounts_to_process)} accounts in randomized order")
 
-        # Process in batches - NO RETRY LOGIC to avoid costly retries
+        # Process in batches with diversity
         total_processed = 0
         batch_count = 0
-        total_videos_processed = 0  # Track actual videos processed
+        total_videos_processed = 0
+        processed_accounts = set()
 
         while total_processed < len(accounts_to_process):
-            batch = tracker.get_next_batch(
-                accounts_to_process[total_processed:],
-                args.batch_size
-            )
+            # Get diverse batch instead of linear selection
+            remaining_accounts = [
+                acc for acc in accounts_to_process if acc not in processed_accounts]
 
-            if not batch:
+            if not remaining_accounts:
                 logger.info("No more accounts to process")
                 break
 
+            # Use diversity if enabled, otherwise simple random selection
+            if args.enable_diversity:
+                batch = get_diverse_account_batch(
+                    remaining_accounts,
+                    args.batch_size,
+                    processed_accounts,
+                    account_categories
+                )
+            else:
+                batch = random.sample(remaining_accounts, min(
+                    args.batch_size, len(remaining_accounts)))
+
             batch_count += 1
-            logger.info(f"Processing batch {batch_count}: {batch}")
+            logger.info(f"🎯 Processing diverse batch {batch_count}: {batch}")
+            logger.info(
+                f"   Categories in batch: {[cat for cat, accs in account_categories.items() if any(acc in batch for acc in accs)]}")
 
-            # Process batch without retry logic
-            process_batch(batch, args, tracker)
-            total_processed += len(batch)
+            # Process batch
+            success = process_batch(batch, args, tracker)
+            if success:
+                processed_accounts.update(batch)
+                total_processed += len(batch)
 
-            # IMPROVED: Check actual videos processed from batch results
-            # Count videos from the last batch file
+            # Check actual videos processed from batch results
             try:
                 dataset_dir = Path("data") / f"dataset_{args.dataset}"
                 batch_files = list(dataset_dir.glob("batch_*.json"))
@@ -606,6 +744,8 @@ def main():
         logger.info(f"Total accounts attempted: {summary['total_processed']}")
         logger.info(f"✅ Successful accounts: {summary['successful_accounts']}")
         logger.info(f"❌ Failed accounts: {summary['failed_accounts']}")
+        logger.info(
+            f"🎲 Accounts processed with randomization: {len(processed_accounts)}")
         logger.info("Error counts by phase:")
         for phase, count in summary['error_phases'].items():
             if count > 0:

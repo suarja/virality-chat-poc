@@ -1,0 +1,74 @@
+marie29france_|analysis|2025-07-06T14:10:29.662160|Critical errors for video 7521764610689617174: Analysis was not successful
+@lea_mary|scraping|2025-07-06T14:14:22.965966|Critical errors: Video unknown: Missing required field: id, Video unknown: Missing video ID, Video unknown: Missing video URL
+athenasol|analysis|2025-07-06T14:17:15.671931|Critical errors for video 7522510778382011670: Analysis was not successful
+athenasol|analysis|2025-07-06T14:17:33.652196|Critical errors for video 7521725671857589526: Analysis was not successful
+athenasol|analysis|2025-07-06T14:17:33.698729|Critical errors for video 7520636397418597654: Analysis was not successful
+athenasol|analysis|2025-07-06T14:17:33.745186|Critical errors for video 7519179636367052054: Analysis was not successful
+athenasol|analysis|2025-07-06T14:17:33.783728|Critical errors for video 7516600411734822166: Analysis was not successful
+athenasol|analysis|2025-07-06T14:17:33.831631|Critical errors for video 7516182818343374102: Analysis was not successful
+athenasol|analysis|2025-07-06T14:17:33.877065|Critical errors for video 7515442692134964502: Analysis was not successful
+athenasol|analysis|2025-07-06T14:17:33.929840|Critical errors for video 7515122228736888086: Analysis was not successful
+athenasol|analysis|2025-07-06T14:17:33.988326|Critical errors for video 7512414702664748310: Analysis was not successful
+athenasol|analysis|2025-07-06T14:17:34.027967|Critical errors for video 7512046568887864598: Analysis was not successful
+leaelui|analysis|2025-07-06T14:18:37.499458|Critical errors for video 7519190667244064022: Analysis was not successful
+leaelui|analysis|2025-07-06T14:18:37.545989|Critical errors for video 7508465806083099926: Analysis was not successful
+leaelui|analysis|2025-07-06T14:18:37.580557|Critical errors for video 7505493061376494870: Analysis was not successful
+leaelui|analysis|2025-07-06T14:18:37.614331|Critical errors for video 7503216603815775510: Analysis was not successful
+leaelui|analysis|2025-07-06T14:18:37.660128|Critical errors for video 7497309958417960214: Analysis was not successful
+leaelui|analysis|2025-07-06T14:18:37.710417|Critical errors for video 7496934807713090838: Analysis was not successful
+leaelui|analysis|2025-07-06T14:18:37.745637|Critical errors for video 7489912071690390806: Analysis was not successful
+leaelui|analysis|2025-07-06T14:18:37.801069|Critical errors for video 7479167771813743894: Analysis was not successful
+leaelui|analysis|2025-07-06T14:18:37.801214|Gemini analysis failed: No videos were successfully analyzed for leaelui
+leaelui|analysis|2025-07-06T14:18:37.801404|Analysis failed: No videos were successfully analyzed for leaelui
+sosah1.6|analysis|2025-07-06T14:18:37.839997|Critical errors for video 7523883153056877846: Analysis was not successful
+sosah1.6|analysis|2025-07-06T14:18:37.869044|Critical errors for video 7523683901722742038: Analysis was not successful
+sosah1.6|analysis|2025-07-06T14:18:37.920045|Critical errors for video 7523641640653720854: Analysis was not successful
+sosah1.6|analysis|2025-07-06T14:18:37.952701|Critical errors for video 7523491221822524694: Analysis was not successful
+sosah1.6|analysis|2025-07-06T14:18:37.995793|Critical errors for video 7523323952807152918: Analysis was not successful
+sosah1.6|analysis|2025-07-06T14:18:38.030586|Critical errors for video 7523251868269546774: Analysis was not successful
+sosah1.6|analysis|2025-07-06T14:18:38.056792|Critical errors for video 7522914244879256854: Analysis was not successful
+sosah1.6|analysis|2025-07-06T14:18:38.089524|Critical errors for video 7522716366697155862: Analysis was not successful
+sosah1.6|analysis|2025-07-06T14:18:38.123274|Critical errors for video 7522516683978755350: Analysis was not successful
+sosah1.6|analysis|2025-07-06T14:18:38.155566|Critical errors for video 7522123797000981782: Analysis was not successful
+sosah1.6|analysis|2025-07-06T14:18:38.195467|Critical errors for video 7521744321356401922: Analysis was not successful
+sosah1.6|analysis|2025-07-06T14:18:38.246415|Critical errors for video 7521670591586258198: Analysis was not successful
+sosah1.6|analysis|2025-07-06T14:18:38.280600|Critical errors for video 7521465047919414550: Analysis was not successful
+sosah1.6|analysis|2025-07-06T14:18:38.314554|Critical errors for video 7521428749959826711: Analysis was not successful
+sosah1.6|analysis|2025-07-06T14:18:38.355438|Critical errors for video 7519925808006270230: Analysis was not successful
+sosah1.6|analysis|2025-07-06T14:18:38.355580|Gemini analysis failed: No videos were successfully analyzed for sosah1.6
+sosah1.6|analysis|2025-07-06T14:18:38.355650|Analysis failed: No videos were successfully analyzed for sosah1.6
+astucequotidienne87|analysis|2025-07-06T14:18:38.387998|Critical errors for video 7523592414531964182: Analysis was not successful
+astucequotidienne87|analysis|2025-07-06T14:18:38.423681|Critical errors for video 7522551744526585110: Analysis was not successful
+astucequotidienne87|analysis|2025-07-06T14:18:38.455595|Critical errors for video 7522507417540627734: Analysis was not successful
+astucequotidienne87|analysis|2025-07-06T14:18:38.487998|Critical errors for video 7521377335958965526: Analysis was not successful
+astucequotidienne87|analysis|2025-07-06T14:18:38.528287|Critical errors for video 7521064251939704086: Analysis was not successful
+astucequotidienne87|analysis|2025-07-06T14:18:38.570534|Critical errors for video 7520992606076128534: Analysis was not successful
+astucequotidienne87|analysis|2025-07-06T14:18:38.603754|Critical errors for video 7520330255022755094: Analysis was not successful
+astucequotidienne87|analysis|2025-07-06T14:18:38.639072|Critical errors for video 7519977637431889174: Analysis was not successful
+astucequotidienne87|analysis|2025-07-06T14:18:38.668621|Critical errors for video 7519855265148095766: Analysis was not successful
+astucequotidienne87|analysis|2025-07-06T14:18:38.698560|Critical errors for video 7519583641622564118: Analysis was not successful
+astucequotidienne87|analysis|2025-07-06T14:18:38.732531|Critical errors for video 7518771614482255126: Analysis was not successful
+astucequotidienne87|analysis|2025-07-06T14:18:38.764148|Critical errors for video 7518684583156534550: Analysis was not successful
+astucequotidienne87|analysis|2025-07-06T14:18:38.807476|Critical errors for video 7518435789584223510: Analysis was not successful
+astucequotidienne87|analysis|2025-07-06T14:18:38.838900|Critical errors for video 7517332527003045142: Analysis was not successful
+astucequotidienne87|analysis|2025-07-06T14:18:38.871825|Critical errors for video 7516600840233159958: Analysis was not successful
+astucequotidienne87|analysis|2025-07-06T14:18:38.872318|Gemini analysis failed: No videos were successfully analyzed for astucequotidienne87
+astucequotidienne87|analysis|2025-07-06T14:18:38.872422|Analysis failed: No videos were successfully analyzed for astucequotidienne87
+@oceane_dmg@loupernaut|scraping|2025-07-06T14:18:52.874330|Critical errors: Video unknown: Missing required field: id, Video unknown: Missing video ID, Video unknown: Missing video URL
+@isabrunellii@domingo|scraping|2025-07-06T14:19:21.570456|Critical errors: Video unknown: Missing required field: id, Video unknown: Missing video ID, Video unknown: Missing video URL
+keilafoster_|analysis|2025-07-06T14:19:21.624464|Critical errors for video 7491033906892885270: Analysis was not successful
+keilafoster_|analysis|2025-07-06T14:19:21.664728|Critical errors for video 7523752697112120598: Analysis was not successful
+keilafoster_|analysis|2025-07-06T14:19:21.709189|Critical errors for video 7523341767400377622: Analysis was not successful
+keilafoster_|analysis|2025-07-06T14:19:21.749038|Critical errors for video 7523022553200315670: Analysis was not successful
+keilafoster_|analysis|2025-07-06T14:19:21.807082|Critical errors for video 7522611176916667670: Analysis was not successful
+keilafoster_|analysis|2025-07-06T14:19:21.836677|Critical errors for video 7521903576545791254: Analysis was not successful
+keilafoster_|analysis|2025-07-06T14:19:21.872771|Critical errors for video 7521087634031136022: Analysis was not successful
+keilafoster_|analysis|2025-07-06T14:19:21.910497|Critical errors for video 7514106033808133398: Analysis was not successful
+keilafoster_|analysis|2025-07-06T14:19:21.952374|Critical errors for video 7512927670624161047: Analysis was not successful
+keilafoster_|analysis|2025-07-06T14:19:21.984661|Critical errors for video 7509240639469505814: Analysis was not successful
+keilafoster_|analysis|2025-07-06T14:19:22.026896|Critical errors for video 7508853307314687254: Analysis was not successful
+keilafoster_|analysis|2025-07-06T14:19:22.076262|Critical errors for video 7507748308329205014: Analysis was not successful
+keilafoster_|analysis|2025-07-06T14:19:22.106088|Critical errors for video 7507670762661186838: Analysis was not successful
+keilafoster_|analysis|2025-07-06T14:19:22.106261|Gemini analysis failed: No videos were successfully analyzed for keilafoster_
+keilafoster_|analysis|2025-07-06T14:19:22.106354|Analysis failed: No videos were successfully analyzed for keilafoster_
+@david_sepahan@pastelcuisine|scraping|2025-07-06T14:19:35.453984|Critical errors: Video unknown: Missing required field: id, Video unknown: Missing video ID, Video unknown: Missing video URL
