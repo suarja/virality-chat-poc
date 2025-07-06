@@ -42,6 +42,123 @@ python3 scripts/analyze_existing_data.py --dataset-dir data/dataset_poc_test --f
 - 🤖 Créer un modèle baseline
 - 💡 Générer des insights
 
+## 🚀 API Usage - Production Ready
+
+### **📊 Analysis Endpoints (Post-Publication Data)**
+
+#### Analyze Existing Video
+
+```bash
+# Analyser une vidéo existante avec données réelles
+curl -X POST "http://localhost:8000/analyze-tiktok-url" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://www.tiktok.com/@swarecito/video/7505706702050823446",
+    "use_cache": true
+  }'
+```
+
+**Use Case**: "Pourquoi cette vidéo a-t-elle été virale?"
+
+- ✅ Score de viralité actuel (0.75 = 75% de potentiel viral)
+- ✅ Données d'engagement réelles (vues, likes, commentaires)
+- ✅ Analyse d'importance des features
+- ✅ Recommandations spécifiques d'amélioration
+
+#### Analyze Profile
+
+```bash
+# Analyser plusieurs vidéos d'un profil
+curl -X POST "http://localhost:8000/analyze-tiktok-profile" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "swarecito",
+    "max_videos": 10,
+    "use_cache": true
+  }'
+```
+
+**Use Case**: "Qu'est-ce qui rend les vidéos de ce créateur virales?"
+
+### **🎯 Simulation Endpoints (Pre-Publication Scenarios)**
+
+#### Simulate Publication Scenarios
+
+```bash
+# Simuler différents scénarios de publication
+curl -X POST "http://localhost:8000/simulate-virality" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "video_url": "https://www.tiktok.com/@swarecito/video/7505706702050823446",
+    "scenarios": [
+      {
+        "name": "Publication Matin",
+        "description": "Publier à 9h le lundi",
+        "publication_hour": 9,
+        "publication_day": "monday",
+        "hashtags": ["fyp", "viral", "trending"],
+        "engagement_multiplier": 1.2
+      },
+      {
+        "name": "Publication Soir",
+        "description": "Publier à 20h le vendredi",
+        "publication_hour": 20,
+        "publication_day": "friday",
+        "hashtags": ["fyp", "comedy", "funny"],
+        "engagement_multiplier": 1.5
+      }
+    ],
+    "simulation_count": 5
+  }'
+```
+
+**Use Case**: "Quand devrais-je publier cette vidéo pour maximiser la viralité?"
+
+- ✅ Meilleur moment de publication recommandé
+- ✅ Combinaisons de hashtags optimales
+- ✅ Amélioration de viralité attendue
+- ✅ Suggestions d'optimisation de contenu
+
+## 🔄 Analysis vs Simulation: Quand Utiliser Quoi?
+
+### **📊 Utilisez Analysis Endpoints Quand:**
+
+- ✅ Vous avez une vidéo TikTok existante
+- ✅ Vous voulez comprendre pourquoi elle a été virale (ou pas)
+- ✅ Vous voulez analyser des données d'engagement réelles
+- ✅ Vous faites de la recherche concurrentielle
+
+**Exemple**: "Pourquoi la vidéo ChatGPT de @swarecito a-t-elle eu 53k vues?"
+
+### **🎯 Utilisez Simulation Endpoints Quand:**
+
+- ✅ Vous planifiez de publier une vidéo
+- ✅ Vous voulez optimiser le timing de publication
+- ✅ Vous voulez tester différentes stratégies de hashtags
+- ✅ Vous voulez prédire la viralité avant publication
+
+**Exemple**: "Quand devrais-je publier ma nouvelle vidéo pour maximiser la viralité?"
+
+## 📈 Interprétation des Scores
+
+### **Score de Viralité (0-1)**
+
+- **0.0-0.3**: Potentiel viral faible
+- **0.3-0.6**: Potentiel viral modéré
+- **0.6-0.8**: Potentiel viral élevé
+- **0.8-1.0**: Potentiel viral très élevé
+
+### **Score de Confiance (0-1)**
+
+- **0.0-0.5**: Confiance faible dans la prédiction
+- **0.5-0.8**: Confiance modérée
+- **0.8-1.0**: Confiance élevée
+
+### **Score R² (0-1)**
+
+- **0.457**: Notre modèle explique 45.7% de la variance virale
+- **Standard industriel**: 0.4+ est considéré comme bon pour la prédiction sur réseaux sociaux
+
 ## 📋 Plan Complet (3 semaines)
 
 ### **Semaine 1 : Validation Rapide**
@@ -214,6 +331,13 @@ python3 scripts/run_pipeline.py --dataset poc_validation --batch-size 2 --videos
 - `scripts/aggregate_features.py` - Agrégation manuelle si nécessaire
 
 **Note**: Le script d'analyse transforme automatiquement les dates en features numériques (heure, jour de semaine, etc.) pour optimiser les performances du modèle.
+
+## 📚 Documentation API
+
+- **Swagger UI**: `http://localhost:8000/docs`
+- **ReDoc**: `http://localhost:8000/redoc`
+- **README API**: `src/api/README.md`
+- **Health Check**: `http://localhost:8000/health`
 
 **Prêt à commencer ?** 🚀
 

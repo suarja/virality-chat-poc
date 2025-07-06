@@ -256,10 +256,58 @@ async def predict_virality(features: Dict[str, object]):
 @app.post("/analyze-tiktok-url", response_model=TikTokAnalysis)
 async def analyze_tiktok_url(request: TikTokURLRequest):
     """
-    Analyze TikTok video from URL
+    📊 Analyze existing TikTok video using real engagement data
 
-    Fetches video data from TikTok URL, extracts features, and predicts virality.
-    Supports caching to avoid repeated scraping of the same videos.
+    **Use Case**: "How viral is this existing video and why?"
+
+    This endpoint analyzes an already published TikTok video using real engagement metrics
+    (views, likes, comments, shares) to understand its viral performance and provide
+    insights on what made it successful.
+
+    **What you get**:
+    - ✅ Current virality score (0-1 scale)
+    - ✅ Real engagement data (views, likes, comments, shares)
+    - ✅ Feature importance analysis
+    - ✅ Specific recommendations for improvement
+    - ✅ Caching support to avoid repeated scraping
+
+    **Example Request**:
+    ```json
+    {
+      "url": "https://www.tiktok.com/@swarecito/video/7505706702050823446",
+      "use_cache": true
+    }
+    ```
+
+    **Example Response**:
+    ```json
+    {
+      "url": "https://www.tiktok.com/@swarecito/video/7505706702050823446",
+      "video_data": {
+        "playCount": 53000,
+        "diggCount": 1916,
+        "commentCount": 631,
+        "shareCount": 302,
+        "hashtags": ["chatgpt", "agent", "prompt"]
+      },
+      "prediction": {
+        "virality_score": 0.75,
+        "confidence": 0.85,
+        "recommendations": [
+          "Optimize publication timing (6-8am, 12-2pm, 6-8pm hours)",
+          "Reduce hashtag count (less is better)"
+        ]
+      },
+      "cache_used": true,
+      "status": "completed"
+    }
+    ```
+
+    **Virality Score Interpretation**:
+    - **0.0-0.3**: Low viral potential
+    - **0.3-0.6**: Moderate viral potential  
+    - **0.6-0.8**: High viral potential
+    - **0.8-1.0**: Very high viral potential
     """
     try:
         start_time = datetime.now()
@@ -308,10 +356,54 @@ async def analyze_tiktok_url(request: TikTokURLRequest):
 @app.post("/analyze-tiktok-profile")
 async def analyze_tiktok_profile(request: TikTokProfileRequest):
     """
-    Analyze TikTok profile and its videos
+    📊 Analyze multiple videos from a TikTok profile
 
-    Fetches profile data and analyzes multiple videos from a TikTok account.
-    Supports caching to avoid repeated scraping.
+    **Use Case**: "What makes this creator's videos viral?"
+
+    This endpoint analyzes multiple videos from a TikTok account to understand
+    patterns in viral content and provide insights on what makes this creator successful.
+
+    **What you get**:
+    - ✅ Analysis of multiple videos (up to max_videos)
+    - ✅ Profile-level insights and patterns
+    - ✅ Best performing videos identification
+    - ✅ Content strategy recommendations
+    - ✅ Caching support for efficiency
+
+    **Example Request**:
+    ```json
+    {
+      "username": "swarecito",
+      "max_videos": 10,
+      "use_cache": true
+    }
+    ```
+
+    **Example Response**:
+    ```json
+    {
+      "username": "swarecito",
+      "profile_data": {
+        "fans": 2001,
+        "following": 54,
+        "video": 55
+      },
+      "videos_analyzed": 10,
+      "video_analyses": [
+        {
+          "video_id": "7505706702050823446",
+          "url": "https://www.tiktok.com/@swarecito/video/7505706702050823446",
+          "prediction": {
+            "virality_score": 0.75,
+            "recommendations": ["Optimize timing", "Reduce hashtags"]
+          }
+        }
+      ],
+      "analysis_time": 45.2,
+      "cache_used": true,
+      "status": "completed"
+    }
+    ```
     """
     try:
         start_time = datetime.now()
@@ -406,10 +498,81 @@ async def analyze_video(video_file: UploadFile = File(...)):
 @app.post("/simulate-virality", response_model=SimulationResponse)
 async def simulate_virality(request: SimulationRequest):
     """
-    Simulate virality prediction with different parameters
+    🎯 Simulate different publication scenarios for virality prediction
 
-    Allows testing different scenarios by modifying video parameters
-    like publication time, hashtags, and engagement multipliers.
+    **Use Case**: "When should I publish this video for maximum virality?"
+
+    This endpoint simulates different publication scenarios (timing, hashtags, content features)
+    to predict which approach would maximize viral potential. Perfect for planning your next video!
+
+    **What you get**:
+    - ✅ Best publication time recommendations
+    - ✅ Optimal hashtag combinations
+    - ✅ Expected virality improvement
+    - ✅ Content optimization suggestions
+    - ✅ Multiple scenario comparisons
+
+    **Example Request**:
+    ```json
+    {
+      "video_url": "https://www.tiktok.com/@swarecito/video/7505706702050823446",
+      "scenarios": [
+        {
+          "name": "Morning Publication",
+          "description": "Publish at 9am on Monday",
+          "publication_hour": 9,
+          "publication_day": "monday",
+          "hashtags": ["fyp", "viral", "trending"],
+          "engagement_multiplier": 1.2
+        },
+        {
+          "name": "Evening Publication",
+          "description": "Publish at 8pm on Friday", 
+          "publication_hour": 20,
+          "publication_day": "friday",
+          "hashtags": ["fyp", "comedy", "funny"],
+          "engagement_multiplier": 1.5
+        }
+      ],
+      "simulation_count": 5
+    }
+    ```
+
+    **Example Response**:
+    ```json
+    {
+      "video_url": "https://www.tiktok.com/@swarecito/video/7505706702050823446",
+      "original_virality_score": 0.75,
+      "scenarios": [
+        {
+          "scenario_name": "Morning Publication",
+          "average_virality_score": 0.82,
+          "best_virality_score": 0.89,
+          "recommendations": [
+            "Publish at optimal hours: 9, 12, 18, 21h",
+            "Add trending hashtags for better reach"
+          ]
+        },
+        {
+          "scenario_name": "Evening Publication",
+          "average_virality_score": 0.91,
+          "best_virality_score": 0.95,
+          "recommendations": [
+            "Friday evening is optimal for this content type",
+            "Consider adding call-to-action for engagement"
+          ]
+        }
+      ],
+      "best_scenario": "Evening Publication",
+      "best_score": 0.91
+    }
+    ```
+
+    **Key Differences from Analysis**:
+    - 🔄 **Analysis**: Uses real post-publication data
+    - 🎯 **Simulation**: Predicts pre-publication scenarios
+    - 📊 **Analysis**: "Why did this video go viral?"
+    - 🚀 **Simulation**: "When should I publish for maximum virality?"
     """
     try:
         return await simulation_service.simulate_virality(request)
