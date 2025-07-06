@@ -1,3 +1,4 @@
+# ARCHIVE: Script DDD historique. Non maintenu. Voir pipeline principal et CI/CD actuelle.
 #!/usr/bin/env python3
 """
 🚀 Script de Déploiement DDD Progressif - Railway

@@ -1,3 +1,5 @@
+# ARCHIVE: Ce script est obsolète ou redondant avec la nouvelle architecture.
+# Voir test_model_diagnostics.py et test_pipeline_minimal.py pour les nouveaux tests.
 #!/usr/bin/env python3
 """
 🧪 Test du pipeline réel TikTok → Features → Prédiction

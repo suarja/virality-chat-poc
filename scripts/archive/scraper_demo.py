@@ -1,3 +1,4 @@
+# ARCHIVE: Script de démo, non maintenu. Voir test_video_scraping.py ou run_scraping.py pour le scraping actuel.
 from apify_client import ApifyClient
 
 # Initialize the ApifyClient with your API token

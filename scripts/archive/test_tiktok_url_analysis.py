@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# ARCHIVE: Ce script est obsolète ou redondant avec la nouvelle architecture.
+# Voir test_model_diagnostics.py pour l'analyse d'URL TikTok.
+
 """
 🧪 Script de test pour l'analyse d'URL TikTok
 

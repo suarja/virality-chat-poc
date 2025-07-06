@@ -1,3 +1,5 @@
+# ARCHIVE: Ce script est obsolète ou redondant avec la nouvelle architecture.
+# Voir test_video_scraping.py pour le scraping brut et test_pipeline_minimal.py pour le pipeline complet.
 #!/usr/bin/env python3
 """
 🧪 Script de test pour le vrai scraper TikTok

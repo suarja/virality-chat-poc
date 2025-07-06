@@ -22,13 +22,26 @@ Ce dossier contient les scripts de test pour valider le pipeline, l'API et les m
   - Usage : `python3 scripts/test_pipeline_minimal.py`
 
 - **test_gemini.py** :
+
   - Teste le service Gemini en isolation (hors pipeline)
   - Usage : `python3 scripts/test_gemini.py`
 
-## 🧹 Nettoyage
+- **test_video_scraping.py** :
+  - Teste le scraping brut d'une vidéo TikTok via Apify
+  - Usage : `python3 scripts/test_video_scraping.py`
 
-- Les scripts intermédiaires/doublons ont été supprimés ou fusionnés.
-- Pour des tests personnalisés, partez de `test_model_diagnostics.py` ou `test_pipeline_minimal.py`.
+## 🗃️ Scripts archivés
+
+Les scripts suivants sont conservés dans `scripts/archive/` pour référence historique ou debug avancé, mais **ne sont plus maintenus** :
+
+- `test_simulation_endpoint.py`, `test_real_pipeline.py`, `test_real_tiktok_scraper.py`, `test_tiktok_url_analysis.py` : anciens tests API/pipeline, remplacés par les nouveaux tests ci-dessus
+- `scraper_demo.py`, `scraper.js` : démos de scraping, non maintenues
+- `deploy_railway.py`, `ddd_deploy.py` : scripts de déploiement/DDD historiques
+
+**Politique d'archivage** :
+
+- Tout script obsolète, redondant ou non compatible avec la nouvelle architecture est déplacé dans `archive/` avec un commentaire explicite en tête de fichier.
+- Pour tout nouveau test, partir des scripts principaux ci-dessus.
 
 ## 🚀 Conseils
 
@@ -36,3 +49,4 @@ Ce dossier contient les scripts de test pour valider le pipeline, l'API et les m
 - Utiliser `test_pipeline_minimal.py` pour valider le pipeline complet.
 - Utiliser `test_model_diagnostics.py` pour un diagnostic avancé.
 - Utiliser `test_gemini.py` pour tester Gemini seul.
+- Utiliser `test_video_scraping.py` pour valider le scraping brut ou debug Apify.

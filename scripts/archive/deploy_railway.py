@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# ARCHIVE: Script de déploiement Railway historique. Voir CI/CD Railway officielle ou README pour la méthode actuelle.
 """
 🚀 Script de Déploiement Railway - DDD Approach
 
