@@ -674,7 +674,10 @@ class ModelCompatibleFeatureSet(BaseFeatureSet):
             'videoMeta', {}).get('duration', 0)
 
         # 2. hashtag_count
-        hashtags = [tag['name'] for tag in video_data.get('hashtags', [])]
+        hashtags = video_data.get('hashtags', [])
+        # Handle both string list and dict list formats
+        if hashtags and isinstance(hashtags[0], dict):
+            hashtags = [tag['name'] for tag in hashtags]
         features['hashtag_count'] = len(hashtags)
 
         # 3. estimated_hashtag_count (même que hashtag_count pour compatibilité)
@@ -859,6 +862,7 @@ FEATURE_SETS_CONFIG = {
     "baseline": ["metadata", "gemini_basic"],
     "enhanced": ["metadata", "gemini_basic", "visual_granular"],
     "comprehensive": ["comprehensive"],
+    "model_compatible": ["model_compatible"],
     "experimental": ["metadata", "visual_granular", "comprehensive"]
 }
 

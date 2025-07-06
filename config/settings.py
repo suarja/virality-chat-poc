@@ -31,27 +31,38 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")  # Backup option
 TIKTOK_ACCOUNTS = [
     # 🎭 LIFESTYLE & DANSE
     "@leaelui",               # Danse, lifestyle, mainstream (7M+ followers)
-    "@lea_mary",              # Lifestyle, mode, beauté
+    "@unefille.ia",           # Actu, Tutos, Outils IA
+    "@swiss_fit.cook",        # Recettes gourmandes faibles calories
+    "@gotaga",                # Gaming, esport français
 
-    # 😂 HUMOUR & ENTERTAINMENT
-    "@athenasol",             # Humour, sketchs, pop culture
+    "@lea_mary",              # Lifestyle, mode, beauté
+    "@marie29france_",        # Lifestyle, mode, beauté,
+    "@julien.snsn",           # Data, IA, Automatisation,
+    "@healthyfood_creation",  # Cuisine healthy, nutrition
+
+    "@oceane_dmg"  # J’vous partage ma vie faite d’amour et de bicyclette 🤪
+
 
     # 🏠 VOYAGE & DÉCOUVERTE
     "@loupernaut",            # Voyage, curiosités, info grand public
+    "@astucequotidienne87",   # Voyage, curiosités, info grand public
 
     # 🤖 TECH & IA
-    "@unefille.ia",           # Actu, Tutos, Outils IA
-    "@swarecito",             # Data, IA, Automatisation
-
+    "@swarecito",             # Data, IA, Automatisation,
+    '@keilafoster_',          # humour
+    "@david_sepahan"   # 🤖 Intelligence Artificielle
     # 🍕 FOOD & CUISINE
     "@pastelcuisine",         # Food, couple, vie quotidienne
-    "@swiss_fit.cook",        # Recettes gourmandes faibles calories
-    "@healthyfood_creation",  # Cuisine healthy, nutrition
+
+
+    # 😂 HUMOUR & ENTERTAINMENT
+    "@athenasol",             # Humour, sketchs, pop culture
+    "@isabrunellii"
 
     # 🎮 GAMING & ESPORT
-    "@gotaga",                # Gaming, esport français
     "@domingo",               # Gaming, humour gaming
     "@squeezie",              # Gaming, divertissement
+    "@sosah1.6",              # Gaming, divertissement
 
     # 💪 FITNESS & SPORT
 

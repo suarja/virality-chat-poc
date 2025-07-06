@@ -69,10 +69,20 @@ class FeatureIntegrationManager:
 
     async def extract_features_from_video_data(self, video_data: Dict[str, Any], gemini_analysis: Optional[Dict] = None) -> Dict[str, Any]:
         """Extract features from video data dictionary with optional Gemini analysis"""
+        logger.info(
+            f"🔍 Starting feature extraction - Available: {self.available}, Extractor: {self.feature_extractor is not None}")
+
         if not self.available or not self.feature_extractor:
+            logger.warning(
+                "⚠️ Using mock features - feature system not available")
             return self._mock_feature_extraction(video_data)
 
         try:
+            logger.info(
+                f"🔍 Extracting features with video_data keys: {list(video_data.keys())}")
+            logger.info(
+                f"🔍 Gemini analysis available: {gemini_analysis is not None}")
+
             # Extract features with modular system and Gemini analysis
             if gemini_analysis:
                 features = self.feature_extractor.extract_features(
@@ -85,6 +95,8 @@ class FeatureIntegrationManager:
             return features
         except Exception as e:
             logger.error(f"❌ Video data feature extraction error: {e}")
+            import traceback
+            logger.error(f"❌ Traceback: {traceback.format_exc()}")
             return self._mock_feature_extraction(video_data)
 
     def extract_features(self, video_data: Dict[str, Any], gemini_analysis: Optional[Dict] = None) -> Dict[str, Any]:

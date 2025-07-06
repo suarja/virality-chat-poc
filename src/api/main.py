@@ -8,20 +8,24 @@
 📚 Documentation: https://railway.app/docs
 🔗 OpenAPI: /docs
 """
-from .tiktok_scraper_integration import tiktok_scraper_integration
-from .feature_integration import feature_manager
-from .ml_model import ml_manager
-from .gemini_integration import gemini_service
-from .simulation_endpoint import TikTokSimulationService, SimulationRequest, SimulationResponse
-from fastapi import FastAPI, UploadFile, File, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.openapi.docs import get_swagger_ui_html
-from pydantic import BaseModel, Field
-from typing import Dict, List, Optional, Any
-import json
-import os
-import logging
+# Load environment variables from .env file
 from datetime import datetime
+import logging
+import os
+import json
+from typing import Dict, List, Optional, Any
+from pydantic import BaseModel, Field
+from fastapi.openapi.docs import get_swagger_ui_html
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, UploadFile, File, HTTPException
+from .simulation_endpoint import TikTokSimulationService, SimulationRequest, SimulationResponse
+from .gemini_integration import gemini_service
+from .ml_model import ml_manager
+from .feature_integration import feature_manager
+from .tiktok_scraper_integration import tiktok_scraper_integration
+from dotenv import load_dotenv
+load_dotenv()
+
 
 logger = logging.getLogger(__name__)
 

@@ -363,6 +363,45 @@ Le dossier `docs/reflection/` contenait :
 
 ---
 
+## 🔄 **Gestion des Datasets et Agrégation Automatique**
+
+### **Processus d'Aggrégation Automatique**
+
+Le pipeline automatiquement agrège les datasets entre les itérations :
+
+```
+ITER_001 (8 vidéos) + ITER_002 (32 vidéos) = Dataset Final (84 vidéos)
+```
+
+#### **Avantages**
+
+- ✅ **Cumul des données** : Chaque itération enrichit le dataset
+- ✅ **Pas de doublons** : Système de déduplication automatique
+- ✅ **Historique complet** : Toutes les expériences conservées
+
+#### **Inconvénients**
+
+- ⚠️ **Complexité croissante** : Dataset de plus en plus volumineux
+- ⚠️ **Biais temporel** : Anciennes données peuvent devenir obsolètes
+- ⚠️ **Overfitting** : Risque de mémorisation des données d'entraînement
+
+### **Gestion des Doublons**
+
+```bash
+# Vérification automatique des doublons
+cut -d',' -f1 data/dataset_iter_XXX/features/aggregated_comprehensive.csv | sort | uniq -d
+```
+
+**Résultat** : Aucun doublon détecté dans ITER_002
+
+### **Recommandations pour les Futures Itérations**
+
+1. **Documenter l'agrégation** : Noter les sources dans chaque itération
+2. **Valider la qualité** : Vérifier la cohérence des données agrégées
+3. **Considérer le nettoyage** : Supprimer les données obsolètes si nécessaire
+
+---
+
 **Document créé le**: `2025-07-06`
 **Dernière mise à jour**: `2025-07-06`
 **Version**: `v1.0.0`

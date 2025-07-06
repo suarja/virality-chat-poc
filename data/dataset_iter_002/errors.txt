@@ -1,0 +1,2 @@
+@lea_mary|scraping|2025-07-06T12:07:39.385970|Critical errors: Video unknown: Missing required field: id, Video unknown: Missing video ID, Video unknown: Missing video URL
+gotaga|analysis|2025-07-06T12:09:05.882873|Critical errors for video 7520643760884043030: Analysis was not successful
