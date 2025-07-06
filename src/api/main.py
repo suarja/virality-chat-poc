@@ -9,7 +9,6 @@
 🔗 OpenAPI: /docs
 """
 from .tiktok_scraper_integration import tiktok_scraper_integration
-from .tiktok_analyzer import tiktok_analyzer
 from .feature_integration import feature_manager
 from .ml_model import ml_manager
 from fastapi import FastAPI, UploadFile, File, HTTPException
@@ -171,15 +170,17 @@ async def extract_features(video_file: UploadFile = File(...)):
         if video_file.filename and not video_file.filename.endswith(('.mp4', '.mov', '.avi')):
             raise HTTPException(400, "Format vidéo non supporté")
 
-        # Données vidéo mock pour test DDD
+        # Lecture du fichier vidéo pour extraction des métadonnées
+        # Note: Pour une implémentation complète, il faudrait analyser le fichier vidéo
+        # Pour l'instant, on utilise des données de base
         video_data = {
-            "duration": 30.0,
-            "hashtag_count": 5,
-            "text": "Vidéo de test",
-            "playCount": 1000,
-            "diggCount": 150,
-            "commentCount": 25,
-            "shareCount": 10
+            "duration": 30.0,  # À extraire du fichier vidéo
+            "hashtag_count": 5,  # À extraire du texte
+            "text": video_file.filename or "Vidéo uploadée",
+            "playCount": 0,  # Pas encore publiée
+            "diggCount": 0,
+            "commentCount": 0,
+            "shareCount": 0
         }
 
         # Extraction avec le gestionnaire de features
