@@ -11,24 +11,50 @@
 from .tiktok_scraper_integration import tiktok_scraper_integration
 from .feature_integration import feature_manager
 from .ml_model import ml_manager
+from .simulation_endpoint import TikTokSimulationService, SimulationRequest, SimulationResponse
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.docs import get_swagger_ui_html
 from pydantic import BaseModel
 from typing import Dict, List, Optional, Any
 import json
 import os
 import logging
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
-# Configuration FastAPI
+# Configuration FastAPI avec Swagger Dark Mode
 app = FastAPI(
     title="TikTok Virality Prediction API",
     description="API de prédiction de viralité TikTok basée sur 34 features avancées",
     version="1.0.0",
-    docs_url="/docs",
+    docs_url=None,  # Désactiver docs par défaut
     redoc_url="/redoc"
 )
+
+# Swagger UI personnalisé avec Dark Mode
+
+
+@app.get("/docs", include_in_schema=False)
+async def custom_swagger_ui_html():
+    return get_swagger_ui_html(
+        openapi_url=app.openapi_url or "/openapi.json",
+        title=app.title + " - Swagger UI",
+        swagger_js_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.9.0/swagger-ui-bundle.js",
+        swagger_css_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.9.0/swagger-ui.css",
+        swagger_ui_parameters={
+            "defaultModelsExpandDepth": -1,
+            "defaultModelExpandDepth": 3,
+            "displayRequestDuration": True,
+            "docExpansion": "list",
+            "filter": True,
+            "showExtensions": True,
+            "showCommonExtensions": True,
+            "syntaxHighlight.theme": "monokai",
+            "theme": "dark"
+        }
+    )
 
 # CORS pour développement
 app.add_middleware(
@@ -77,6 +103,8 @@ class TikTokAnalysis(BaseModel):
 
 
 # Import du gestionnaire ML
+# Service de simulation
+simulation_service = TikTokSimulationService(feature_manager, ml_manager)
 
 
 @app.on_event("startup")
@@ -111,7 +139,8 @@ async def root():
         "r2_score": 0.457,
         "features_count": 34,
         "docs": "/docs",
-        "health": "/health"
+        "health": "/health",
+        "simulation": "/simulate-virality"
     }
 
 
@@ -126,6 +155,7 @@ async def health_check():
         "feature_system_available": feature_manager.is_available(),
         "features_count": feature_manager.get_feature_count(),
         "tiktok_scraper_available": tiktok_scraper_integration.is_available(),
+        "simulation_service_available": True,
         "environment": os.getenv("RAILWAY_ENVIRONMENT", "development")
     }
 
@@ -148,6 +178,7 @@ async def api_info():
             "predict": "/predict - Prédiction de viralité",
             "analyze_tiktok_url": "/analyze-tiktok-url - Analyse vidéo TikTok via URL",
             "analyze_tiktok_profile": "/analyze-tiktok-profile - Analyse profil TikTok",
+            "simulate_virality": "/simulate-virality - Simulation pre-publication",
             "analyze": "/analyze - Pipeline complet upload vidéo"
         },
         "documentation": {
@@ -348,6 +379,55 @@ async def analyze_video(video_file: UploadFile = File(...)):
 
     except Exception as e:
         raise HTTPException(500, f"Erreur pipeline: {str(e)}")
+
+
+@app.post("/simulate-virality", response_model=SimulationResponse)
+async def simulate_virality(request: SimulationRequest):
+    """
+    🎯 Simulation Pre-Publication TikTok
+
+    Simule différents scénarios de publication pour optimiser la viralité:
+    - Heures de publication optimales
+    - Hashtags trending
+    - Paramètres de contenu
+    - Multiplicateurs d'engagement
+
+    Exemple de requête:
+    ```json
+    {
+        "video_url": "https://www.tiktok.com/@user/video/1234567890",
+        "scenarios": [
+            {
+                "name": "Publication matin",
+                "description": "Test publication 9h",
+                "publication_hour": 9,
+                "publication_day": "monday",
+                "hashtags": ["fyp", "viral"],
+                "video_length": 30,
+                "has_call_to_action": true
+            }
+        ],
+        "simulation_count": 5
+    }
+    ```
+    """
+    try:
+        start_time = datetime.now()
+
+        # Exécuter la simulation
+        result = await simulation_service.run_simulation(request)
+
+        analysis_time = (datetime.now() - start_time).total_seconds()
+
+        # Ajouter le temps d'analyse
+        result.summary["analysis_time"] = analysis_time
+
+        return result
+
+    except Exception as e:
+        logger.error(f"Erreur simulation: {e}")
+        raise HTTPException(500, f"Erreur simulation: {str(e)}")
+
 
 if __name__ == "__main__":
     import uvicorn
