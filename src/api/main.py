@@ -1,9 +1,9 @@
 """
-🚀 TikTok Virality Prediction API - DDD Approach
+🚀 TikTok Virality Prediction API
 
-🎯 Phase 3: Deployment Driven Development
-📊 R² = 0.457 - Prédiction pré-publication scientifiquement validée
-🔬 34 features avancées extraites automatiquement
+🎯 Production-ready API for TikTok virality prediction
+📊 R² = 0.457 - Scientifically validated pre-publication prediction
+🔬 34 advanced features automatically extracted
 
 📚 Documentation: https://railway.app/docs
 🔗 OpenAPI: /docs
@@ -15,7 +15,7 @@ from .simulation_endpoint import TikTokSimulationService, SimulationRequest, Sim
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_swagger_ui_html
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Dict, List, Optional, Any
 import json
 import os
@@ -24,23 +24,23 @@ from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
-# Configuration FastAPI avec Swagger Dark Mode
+# FastAPI Configuration with Swagger UI
 app = FastAPI(
     title="TikTok Virality Prediction API",
-    description="API de prédiction de viralité TikTok basée sur 34 features avancées",
+    description="Production API for TikTok virality prediction based on 34 advanced features",
     version="1.0.0",
-    docs_url=None,  # Désactiver docs par défaut
+    docs_url=None,  # Disable default docs
     redoc_url="/redoc"
 )
 
-# Swagger UI personnalisé avec Dark Mode
+# Custom Swagger UI with Dark Mode
 
 
 @app.get("/docs", include_in_schema=False)
 async def custom_swagger_ui_html():
     return get_swagger_ui_html(
         openapi_url=app.openapi_url or "/openapi.json",
-        title=app.title + " - Swagger UI",
+        title=app.title + " - API Documentation",
         swagger_js_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.9.0/swagger-ui-bundle.js",
         swagger_css_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.9.0/swagger-ui.css",
         swagger_ui_parameters={
@@ -56,7 +56,7 @@ async def custom_swagger_ui_html():
         }
     )
 
-# CORS pour développement
+# CORS for development
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -65,7 +65,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Modèles Pydantic
+# Pydantic Models
 
 
 class ViralityPrediction(BaseModel):
@@ -83,14 +83,23 @@ class FeatureExtraction(BaseModel):
 
 
 class TikTokURLRequest(BaseModel):
-    url: str
-    description: str = "URL de la vidéo TikTok à analyser"
+    url: str = Field(
+        default="https://www.tiktok.com/@swarecito/video/7505706702050823446",
+        description="TikTok video URL to analyze"
+    )
+    use_cache: bool = Field(
+        default=True,
+        description="Use cached data if available (recommended for testing)"
+    )
 
 
 class TikTokProfileRequest(BaseModel):
     username: str
     max_videos: int = 10
-    description: str = "Nom d'utilisateur TikTok à analyser"
+    use_cache: bool = Field(
+        default=True,
+        description="Use cached data if available"
+    )
 
 
 class TikTokAnalysis(BaseModel):
@@ -100,38 +109,40 @@ class TikTokAnalysis(BaseModel):
     prediction: Dict[str, Any]
     analysis_time: float
     status: str
+    cache_used: bool = False
 
 
-# Import du gestionnaire ML
-# Service de simulation
-simulation_service = TikTokSimulationService(feature_manager, ml_manager)
+# Import ML manager
+# Simulation service
+simulation_service = TikTokSimulationService(
+    feature_manager, ml_manager, tiktok_scraper_integration)
 
 
 @app.on_event("startup")
 async def startup_event():
-    """Chargement du modèle au démarrage"""
+    """Load model on startup"""
     try:
-        # Chargement du modèle ML
+        # Load ML model
         model_loaded = ml_manager.load_model()
         feature_extractor_loaded = ml_manager.load_feature_extractor()
 
         if model_loaded:
-            print("✅ Modèle ML chargé avec succès")
+            print("✅ ML model loaded successfully")
         else:
-            print("⚠️ Modèle ML non trouvé - Utilisation des mocks")
+            print("⚠️ ML model not found - Using mocks")
 
         if feature_extractor_loaded:
-            print("✅ Extracteur de features chargé")
+            print("✅ Feature extractor loaded")
         else:
-            print("⚠️ Extracteur non trouvé - Utilisation des mocks")
+            print("⚠️ Feature extractor not found - Using mocks")
 
     except Exception as e:
-        print(f"⚠️ Erreur chargement modèle: {e}")
+        print(f"⚠️ Model loading error: {e}")
 
 
 @app.get("/")
 async def root():
-    """Page d'accueil avec informations du projet"""
+    """Home page with project information"""
     return {
         "message": "TikTok Virality Prediction API",
         "version": "1.0.0",
@@ -146,7 +157,7 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    """Health check pour Railway"""
+    """Health check for Railway"""
     return {
         "status": "healthy",
         "version": "1.0.0",
@@ -162,10 +173,10 @@ async def health_check():
 
 @app.get("/info")
 async def api_info():
-    """Informations détaillées sur l'API"""
+    """Detailed API information"""
     return {
         "name": "TikTok Virality Prediction API",
-        "description": "API de prédiction de viralité TikTok",
+        "description": "Production API for TikTok virality prediction",
         "scientific_basis": {
             "r2_score": 0.457,
             "features_count": 34,
@@ -174,12 +185,12 @@ async def api_info():
         },
         "endpoints": {
             "health": "/health - Health check",
-            "extract_features": "/extract-features - Extraction des features",
-            "predict": "/predict - Prédiction de viralité",
-            "analyze_tiktok_url": "/analyze-tiktok-url - Analyse vidéo TikTok via URL",
-            "analyze_tiktok_profile": "/analyze-tiktok-profile - Analyse profil TikTok",
-            "simulate_virality": "/simulate-virality - Simulation pre-publication",
-            "analyze": "/analyze - Pipeline complet upload vidéo"
+            "extract_features": "/extract-features - Feature extraction",
+            "predict": "/predict - Virality prediction",
+            "analyze_tiktok_url": "/analyze-tiktok-url - TikTok video analysis via URL",
+            "analyze_tiktok_profile": "/analyze-tiktok-profile - TikTok profile analysis",
+            "simulate_virality": "/simulate-virality - Pre-publication simulation",
+            "analyze": "/analyze - Complete video upload pipeline"
         },
         "documentation": {
             "openapi": "/docs",
@@ -191,243 +202,221 @@ async def api_info():
 @app.post("/extract-features", response_model=FeatureExtraction)
 async def extract_features(video_file: UploadFile = File(...)):
     """
-    🎯 Étape 2 DDD: Extraction des 34 features d'une vidéo
+    Extract 34 advanced features from a video file
 
-    Extrait automatiquement les features pré-publication nécessaires
-    pour la prédiction de viralité.
+    This endpoint processes uploaded video files and extracts comprehensive
+    features for virality prediction including visual, audio, and metadata features.
     """
     try:
-        # Validation du fichier
-        if video_file.filename and not video_file.filename.endswith(('.mp4', '.mov', '.avi')):
-            raise HTTPException(400, "Format vidéo non supporté")
+        start_time = datetime.now()
 
-        # Lecture du fichier vidéo pour extraction des métadonnées
-        # Note: Pour une implémentation complète, il faudrait analyser le fichier vidéo
-        # Pour l'instant, on utilise des données de base
-        video_data = {
-            "duration": 30.0,  # À extraire du fichier vidéo
-            "hashtag_count": 5,  # À extraire du texte
-            "text": video_file.filename or "Vidéo uploadée",
-            "playCount": 0,  # Pas encore publiée
-            "diggCount": 0,
-            "commentCount": 0,
-            "shareCount": 0
-        }
+        # Extract features using the feature manager
+        features = await feature_manager.extract_features_from_file(video_file)
 
-        # Extraction avec le gestionnaire de features
-        features = feature_manager.extract_features(video_data)
+        extraction_time = (datetime.now() - start_time).total_seconds()
 
         return FeatureExtraction(
             features=features,
             count=len(features),
-            extraction_time=1.5
+            extraction_time=extraction_time
         )
 
     except Exception as e:
-        raise HTTPException(500, f"Erreur extraction features: {str(e)}")
+        logger.error(f"Feature extraction error: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Feature extraction failed: {str(e)}")
 
 
 @app.post("/predict", response_model=ViralityPrediction)
 async def predict_virality(features: Dict[str, object]):
     """
-    🎯 Étape 3 DDD: Prédiction de viralité
+    Predict virality score from extracted features
 
-    Prédit la viralité d'une vidéo basée sur les features extraites.
-    R² = 0.457 avec seulement 10.6% de perte vs features complètes.
+    Uses the trained ML model to predict virality based on the provided features.
+    Returns prediction score, confidence, and feature importance analysis.
     """
     try:
-        # Utilisation du gestionnaire ML
-        prediction_result = ml_manager.predict(features)
+        # Get prediction from ML manager
+        prediction = ml_manager.predict(features)
 
-        return ViralityPrediction(**prediction_result)
+        return ViralityPrediction(
+            virality_score=prediction.get("virality_score", 0.0),
+            confidence=prediction.get("confidence", 0.0),
+            r2_score=prediction.get("r2_score", 0.457),
+            features_importance=prediction.get("features_importance", {}),
+            recommendations=prediction.get("recommendations", [])
+        )
 
     except Exception as e:
-        raise HTTPException(500, f"Erreur prédiction: {str(e)}")
+        logger.error(f"Prediction error: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Prediction failed: {str(e)}")
 
 
 @app.post("/analyze-tiktok-url", response_model=TikTokAnalysis)
 async def analyze_tiktok_url(request: TikTokURLRequest):
     """
-    🎯 DDD Phase 4: Analyse de vidéo TikTok via URL
+    Analyze TikTok video from URL
 
-    Pipeline complet: URL TikTok → scraping réel → features → prédiction
-    Utilise le vrai scraper Apify et le système de features modulaire.
+    Fetches video data from TikTok URL, extracts features, and predicts virality.
+    Supports caching to avoid repeated scraping of the same videos.
     """
-    import time
-    start_time = time.time()
-
     try:
-        # 1. Récupération des vraies données TikTok via scraper
-        video_data = tiktok_scraper_integration.get_video_data_from_url(
-            request.url)
+        start_time = datetime.now()
+        cache_used = False
 
-        # 2. Extraction des features avec le système modulaire
-        features = feature_manager.extract_features(video_data)
+        # Check cache first if enabled
+        if request.use_cache:
+            cached_data = await tiktok_scraper_integration.get_cached_video_data(request.url)
+            if cached_data:
+                video_data = cached_data
+                cache_used = True
+                logger.info(f"Using cached data for URL: {request.url}")
+            else:
+                # Fetch fresh data from TikTok
+                video_data = await tiktok_scraper_integration.get_video_data_from_url(request.url)
+                # Cache the new data
+                await tiktok_scraper_integration.cache_video_data(request.url, video_data)
+        else:
+            # Always fetch fresh data
+            video_data = await tiktok_scraper_integration.get_video_data_from_url(request.url)
 
-        # 3. Prédiction de viralité
-        prediction_result = ml_manager.predict(features)
+        # Extract features from video data
+        features = await feature_manager.extract_features_from_video_data(video_data)
 
-        # 4. Calcul du temps d'analyse
-        analysis_time = time.time() - start_time
+        # Get prediction
+        prediction = ml_manager.predict(features)
+
+        analysis_time = (datetime.now() - start_time).total_seconds()
 
         return TikTokAnalysis(
             url=request.url,
             video_data=video_data,
             features=features,
-            prediction=prediction_result,
+            prediction=prediction,
             analysis_time=analysis_time,
-            status="completed"
+            status="completed",
+            cache_used=cache_used
         )
 
-    except ValueError as e:
-        raise HTTPException(400, f"URL invalide: {str(e)}")
     except Exception as e:
-        raise HTTPException(500, f"Erreur analyse: {str(e)}")
+        logger.error(f"TikTok URL analysis error: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Analysis failed: {str(e)}")
 
 
 @app.post("/analyze-tiktok-profile")
 async def analyze_tiktok_profile(request: TikTokProfileRequest):
     """
-    🎯 DDD Phase 4: Analyse de profil TikTok
+    Analyze TikTok profile and its videos
 
-    Pipeline complet: Username → scraping profil → analyse vidéos → recommandations
-    Utilise le vrai scraper Apify pour récupérer toutes les vidéos du profil.
+    Fetches profile data and analyzes multiple videos from a TikTok account.
+    Supports caching to avoid repeated scraping.
     """
-    import time
-    start_time = time.time()
-
     try:
-        # 1. Récupération des données du profil via scraper
-        profile_data = tiktok_scraper_integration.get_profile_data(
-            request.username, request.max_videos)
+        start_time = datetime.now()
+        cache_used = False
 
-        # 2. Analyse de chaque vidéo
-        videos_analysis = []
-        for video in profile_data.get('videos', []):
+        # Check cache first if enabled
+        if request.use_cache:
+            cached_data = await tiktok_scraper_integration.get_cached_profile_data(request.username)
+            if cached_data:
+                profile_data = cached_data
+                cache_used = True
+                logger.info(
+                    f"Using cached data for profile: {request.username}")
+            else:
+                # Fetch fresh data from TikTok
+                profile_data = await tiktok_scraper_integration.get_profile_data(request.username, request.max_videos)
+                # Cache the new data
+                await tiktok_scraper_integration.cache_profile_data(request.username, profile_data)
+        else:
+            # Always fetch fresh data
+            profile_data = await tiktok_scraper_integration.get_profile_data(request.username, request.max_videos)
+
+        # Analyze each video
+        video_analyses = []
+        for video in profile_data.get("videos", []):
             try:
-                # Extraction des features
-                features = feature_manager.extract_features(video)
-
-                # Prédiction de viralité
+                features = await feature_manager.extract_features_from_video_data(video)
                 prediction = ml_manager.predict(features)
 
-                videos_analysis.append({
-                    "video_id": video.get('id'),
-                    "url": video.get('url'),
+                video_analyses.append({
+                    "video_id": video.get("id"),
+                    "url": video.get("webVideoUrl"),
                     "features": features,
                     "prediction": prediction
                 })
             except Exception as e:
-                logger.error(f"Erreur analyse vidéo {video.get('id')}: {e}")
+                logger.warning(
+                    f"Failed to analyze video {video.get('id')}: {e}")
                 continue
 
-        # 3. Statistiques du profil
-        total_videos = len(videos_analysis)
-        avg_virality = sum(v['prediction']['virality_score']
-                           for v in videos_analysis) / total_videos if total_videos > 0 else 0
-
-        # 4. Calcul du temps d'analyse
-        analysis_time = time.time() - start_time
+        analysis_time = (datetime.now() - start_time).total_seconds()
 
         return {
             "username": request.username,
-            "profile_data": profile_data,
-            "videos_analysis": videos_analysis,
-            "profile_stats": {
-                "total_videos_analyzed": total_videos,
-                "average_virality_score": avg_virality,
-                "top_viral_videos": sorted(videos_analysis,
-                                           key=lambda x: x['prediction']['virality_score'],
-                                           reverse=True)[:5]
-            },
+            "profile_data": profile_data.get("profile_info", {}),
+            "videos_analyzed": len(video_analyses),
+            "video_analyses": video_analyses,
             "analysis_time": analysis_time,
+            "cache_used": cache_used,
             "status": "completed"
         }
 
-    except ValueError as e:
-        raise HTTPException(400, f"Username invalide: {str(e)}")
     except Exception as e:
-        raise HTTPException(500, f"Erreur analyse profil: {str(e)}")
+        logger.error(f"TikTok profile analysis error: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Profile analysis failed: {str(e)}")
 
 
 @app.post("/analyze")
 async def analyze_video(video_file: UploadFile = File(...)):
     """
-    🎯 Étape 4 DDD: Pipeline complet vidéo → prédiction
+    Complete video analysis pipeline
 
-    Pipeline complet: upload vidéo → extraction features → prédiction → recommandations
+    Upload a video file for complete analysis including feature extraction
+    and virality prediction. This is the main endpoint for video analysis.
     """
     try:
-        # 1. Extraction des features
-        features_response = await extract_features(video_file)
-        features = features_response.features
+        start_time = datetime.now()
 
-        # 2. Prédiction de viralité
-        prediction_response = await predict_virality(features)
+        # Extract features
+        features = await feature_manager.extract_features_from_file(video_file)
 
-        # 3. Résultats complets
+        # Get prediction
+        prediction = ml_manager.predict(features)
+
+        analysis_time = (datetime.now() - start_time).total_seconds()
+
         return {
-            "video_info": {
-                "filename": video_file.filename,
-                "size": video_file.size,
-                "content_type": video_file.content_type
-            },
+            "filename": video_file.filename,
             "features": features,
-            "prediction": prediction_response,
-            "pipeline_time": features_response.extraction_time + 0.5
+            "prediction": prediction,
+            "analysis_time": analysis_time,
+            "status": "completed"
         }
 
     except Exception as e:
-        raise HTTPException(500, f"Erreur pipeline: {str(e)}")
+        logger.error(f"Video analysis error: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Video analysis failed: {str(e)}")
 
 
 @app.post("/simulate-virality", response_model=SimulationResponse)
 async def simulate_virality(request: SimulationRequest):
     """
-    🎯 Simulation Pre-Publication TikTok
+    Simulate virality prediction with different parameters
 
-    Simule différents scénarios de publication pour optimiser la viralité:
-    - Heures de publication optimales
-    - Hashtags trending
-    - Paramètres de contenu
-    - Multiplicateurs d'engagement
-
-    Exemple de requête:
-    ```json
-    {
-        "video_url": "https://www.tiktok.com/@user/video/1234567890",
-        "scenarios": [
-            {
-                "name": "Publication matin",
-                "description": "Test publication 9h",
-                "publication_hour": 9,
-                "publication_day": "monday",
-                "hashtags": ["fyp", "viral"],
-                "video_length": 30,
-                "has_call_to_action": true
-            }
-        ],
-        "simulation_count": 5
-    }
-    ```
+    Allows testing different scenarios by modifying video parameters
+    like publication time, hashtags, and engagement multipliers.
     """
     try:
-        start_time = datetime.now()
-
-        # Exécuter la simulation
-        result = await simulation_service.run_simulation(request)
-
-        analysis_time = (datetime.now() - start_time).total_seconds()
-
-        # Ajouter le temps d'analyse
-        result.summary["analysis_time"] = analysis_time
-
-        return result
-
+        return await simulation_service.simulate_virality(request)
     except Exception as e:
-        logger.error(f"Erreur simulation: {e}")
-        raise HTTPException(500, f"Erreur simulation: {str(e)}")
-
+        logger.error(f"Simulation error: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Simulation failed: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn

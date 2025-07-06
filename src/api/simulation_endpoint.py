@@ -80,9 +80,10 @@ class SimulationResponse(BaseModel):
 class TikTokSimulationService:
     """Service de simulation TikTok"""
 
-    def __init__(self, feature_manager, ml_manager):
+    def __init__(self, feature_manager, ml_manager, tiktok_scraper_integration):
         self.feature_manager = feature_manager
         self.ml_manager = ml_manager
+        self.tiktok_scraper_integration = tiktok_scraper_integration
 
         # Hashtags trending par défaut (à mettre à jour régulièrement)
         self.trending_hashtags = [
@@ -239,8 +240,7 @@ class TikTokSimulationService:
         """Exécute la simulation complète"""
 
         # Scraper la vidéo
-        from .tiktok_scraper_integration import scrape_video_by_url
-        video_data = await scrape_video_by_url(request.video_url)
+        video_data = await self.tiktok_scraper_integration.get_video_data_from_url(request.video_url)
 
         if not video_data:
             raise ValueError(
@@ -248,7 +248,8 @@ class TikTokSimulationService:
 
         # Score original
         original_features = self.feature_manager.extract_features(video_data)
-        original_score = self.ml_manager.predict_virality(original_features)
+        original_score = self.ml_manager.predict(
+            original_features)['virality_score']
 
         results = []
         best_scenario = None
@@ -268,8 +269,8 @@ class TikTokSimulationService:
                         video_data, variation)
 
                     # Prédire la viralité
-                    virality_score = self.ml_manager.predict_virality(
-                        simulated_features)
+                    virality_score = self.ml_manager.predict(
+                        simulated_features)['virality_score']
 
                     # Ajouter du bruit pour la variance
                     noise = random.uniform(-0.05, 0.05)
@@ -325,3 +326,7 @@ class TikTokSimulationService:
             best_score=best_score,
             summary=summary
         )
+
+    async def simulate_virality(self, request: SimulationRequest) -> SimulationResponse:
+        """Simulate virality prediction with different parameters"""
+        return await self.run_simulation(request)
