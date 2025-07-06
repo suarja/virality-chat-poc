@@ -1,8 +1,8 @@
 """
-🤖 Module de chargement du modèle ML pour l'API
+🤖 ML Model Loading Module for API
 
-🎯 DDD Phase 2: Intégration du modèle ML réel
-📊 R² = 0.457 - Modèle de prédiction pré-publication
+🎯 Production-ready ML model integration
+📊 R² = 0.457 - Pre-publication prediction model
 """
 import joblib
 import os
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class MLModelManager:
-    """Gestionnaire du modèle ML pour l'API"""
+    """ML model manager for API"""
 
     def __init__(self):
         self.model = None
@@ -22,45 +22,45 @@ class MLModelManager:
         self.feature_extractor_path = "models/feature_extractor.pkl"
 
     def load_model(self) -> bool:
-        """Charge le modèle ML entraîné"""
+        """Load trained ML model"""
         try:
             if os.path.exists(self.model_path):
                 self.model = joblib.load(self.model_path)
-                logger.info(f"✅ Modèle ML chargé: {self.model_path}")
+                logger.info(f"✅ ML model loaded: {self.model_path}")
                 return True
             else:
-                logger.warning(f"⚠️ Modèle non trouvé: {self.model_path}")
+                logger.warning(f"⚠️ Model not found: {self.model_path}")
                 return False
         except Exception as e:
-            logger.error(f"❌ Erreur chargement modèle: {e}")
+            logger.error(f"❌ Model loading error: {e}")
             return False
 
     def load_feature_extractor(self) -> bool:
-        """Charge l'extracteur de features"""
+        """Load feature extractor"""
         try:
             if os.path.exists(self.feature_extractor_path):
                 self.feature_extractor = joblib.load(
                     self.feature_extractor_path)
                 logger.info(
-                    f"✅ Extracteur de features chargé: {self.feature_extractor_path}")
+                    f"✅ Feature extractor loaded: {self.feature_extractor_path}")
                 return True
             else:
                 logger.warning(
-                    f"⚠️ Extracteur non trouvé: {self.feature_extractor_path}")
+                    f"⚠️ Feature extractor not found: {self.feature_extractor_path}")
                 return False
         except Exception as e:
-            logger.error(f"❌ Erreur chargement extracteur: {e}")
+            logger.error(f"❌ Feature extractor loading error: {e}")
             return False
 
     def predict(self, features: Dict[str, Any]) -> Dict[str, Any]:
-        """Prédiction avec le modèle ML"""
+        """Prediction with ML model"""
         if self.model is None:
-            # Fallback vers mock si modèle non chargé
+            # Fallback to mock if model not loaded
             return self._mock_prediction(features)
 
         try:
-            # Conversion des features pour le modèle
-            # TODO: Implémenter la conversion réelle
+            # Convert features for model
+            # TODO: Implement real conversion
             prediction = self.model.predict([list(features.values())])[0]
 
             return {
@@ -71,11 +71,11 @@ class MLModelManager:
                 "recommendations": self._get_recommendations(features)
             }
         except Exception as e:
-            logger.error(f"❌ Erreur prédiction: {e}")
+            logger.error(f"❌ Prediction error: {e}")
             return self._mock_prediction(features)
 
     def _mock_prediction(self, features: Dict[str, Any]) -> Dict[str, Any]:
-        """Prédiction mock pour DDD Phase 1"""
+        """Mock prediction for testing"""
         return {
             "virality_score": 0.75,
             "confidence": 0.85,
@@ -88,15 +88,15 @@ class MLModelManager:
                 "estimated_hashtag_count": 0.096
             },
             "recommendations": [
-                "Optimisez le timing de publication (heures 6-8h, 12-14h, 18-20h)",
-                "Réduisez le nombre de hashtags (moins = mieux)",
-                "Ajoutez plus de contact visuel avec la caméra",
-                "Améliorez la vibrance des couleurs"
+                "Optimize publication timing (6-8am, 12-2pm, 6-8pm hours)",
+                "Reduce hashtag count (less is better)",
+                "Add more visual contact with camera",
+                "Improve color vibrancy"
             ]
         }
 
     def _get_feature_importance(self) -> Dict[str, float]:
-        """Importance des features (basée sur nos résultats)"""
+        """Feature importance (based on our results)"""
         return {
             "audience_connection_score": 0.124,
             "hour_of_day": 0.108,
@@ -106,26 +106,26 @@ class MLModelManager:
         }
 
     def _get_recommendations(self, features: Dict[str, Any]) -> list:
-        """Recommandations basées sur les features"""
+        """Recommendations based on features"""
         recommendations = []
 
         if features.get("estimated_hashtag_count", 0) > 10:
             recommendations.append(
-                "Réduisez le nombre de hashtags (moins = mieux)")
+                "Reduce hashtag count (less is better)")
 
         if features.get("audience_connection_score", 0) < 0.7:
             recommendations.append(
-                "Ajoutez plus de contact visuel avec la caméra")
+                "Add more visual contact with camera")
 
         if features.get("color_vibrancy", 0) < 0.6:
-            recommendations.append("Améliorez la vibrance des couleurs")
+            recommendations.append("Improve color vibrancy")
 
         if not recommendations:
             recommendations.append(
-                "Optimisez le timing de publication (heures 6-8h, 12-14h, 18-20h)")
+                "Optimize publication timing (6-8am, 12-2pm, 6-8pm hours)")
 
         return recommendations
 
 
-# Instance globale
+# Global instance
 ml_manager = MLModelManager()

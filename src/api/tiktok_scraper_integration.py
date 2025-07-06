@@ -108,7 +108,8 @@ class TikTokScraperIntegration:
                 with open(cache_file, 'r', encoding='utf-8') as f:
                     cached_data = json.load(f)
                 logger.info(f"✅ Using cached video data for {url}")
-                return cached_data
+                # Return the video_data part
+                return cached_data.get("video_data")
             return None
         except Exception as e:
             logger.warning(f"⚠️ Error reading cache: {e}")
