@@ -44,10 +44,11 @@
 
 ### **Variables Manipulées**
 
-| Variable       | Valeur Testée | Valeur Contrôle | Justification                    |
-| -------------- | ------------- | --------------- | -------------------------------- |
-| **Variable 1** | `[Valeur]`    | `[Valeur]`      | [Pourquoi tester cette variable] |
-| **Variable 2** | `[Valeur]`    | `[Valeur]`      | [Pourquoi tester cette variable] |
+| Variable         | Valeur Testée                          | Valeur Contrôle       | Impact sur le Code                       | Justification                    |
+| ---------------- | -------------------------------------- | --------------------- | ---------------------------------------- | -------------------------------- |
+| **Feature Set**  | `[model_compatible/comprehensive/etc]` | `[Valeur précédente]` | `src/features/modular_feature_system.py` | [Pourquoi tester cette variable] |
+| **ML Model**     | `[RandomForest/XGBoost/etc]`           | `[Valeur précédente]` | `src/api/ml_model.py:25`                 | [Pourquoi tester cette variable] |
+| **Dataset Size** | `[X] vidéos`                           | `[Valeur précédente]` | `scripts/run_pipeline.py`                | [Pourquoi tester cette variable] |
 
 ---
 
@@ -89,12 +90,13 @@ python3 scripts/run_pipeline.py --dataset poc_training --batch-size 3 --videos-p
 python3 scripts/analyze_existing_data.py --dataset-dir data/dataset_poc_training --feature-set comprehensive --save-model
 ```
 
-**Métriques à surveiller**:
+**Métriques à surveiller** (toujours les mêmes):
 
-- R² Score
-- MAE (Mean Absolute Error)
-- RMSE (Root Mean Square Error)
-- Feature importance
+- **R² Score** (objectif: > 0.6) - Coefficient de détermination
+- **MAE** (objectif: < 0.3) - Mean Absolute Error
+- **RMSE** (objectif: < 0.4) - Root Mean Square Error
+- **Feature importance** (top 5) - Importance relative des features
+- **Latency** (objectif: < 2s) - Temps de prédiction API
 
 ### **Phase 4: Documentation et Contenu Éducatif**
 
@@ -197,6 +199,7 @@ railway up
 - **Educational Content**: `docs/content-creation/README.md`
 - **ML Glossary**: `docs/educational/ml_glossary.md`
 - **API Documentation**: `src/api/README.md`
+- **Architecture MLOps**: `docs/iterations/architecture_mlops.md` ⭐
 
 ### **Scripts Utilisés**
 

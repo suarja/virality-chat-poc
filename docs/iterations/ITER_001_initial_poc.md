@@ -45,11 +45,12 @@
 
 ### **Variables Manipulées**
 
-| Variable               | Valeur Testée          | Valeur Contrôle | Justification              |
-| ---------------------- | ---------------------- | --------------- | -------------------------- |
-| **Feature Extraction** | `ModularFeatureSystem` | `Mock features` | Système modulaire vs mocks |
-| **Gemini Integration** | `Enabled`              | `Disabled`      | Impact de l'analyse AI     |
-| **Caching**            | `Enabled`              | `Disabled`      | Performance et coût        |
+| Variable               | Valeur Testée               | Valeur Contrôle | Impact sur le Code                       | Justification                     |
+| ---------------------- | --------------------------- | --------------- | ---------------------------------------- | --------------------------------- |
+| **Feature Set**        | `ModelCompatibleFeatureSet` | `Mock features` | `src/features/modular_feature_system.py` | Système modulaire vs mocks        |
+| **ML Model**           | `RandomForest`              | `None`          | `src/api/ml_model.py:25`                 | Modèle robuste pour petit dataset |
+| **Gemini Integration** | `Enabled`                   | `Disabled`      | `src/services/gemini_service.py`         | Impact de l'analyse AI            |
+| **Caching**            | `Enabled`                   | `Disabled`      | `src/scraping/tiktok_scraper.py`         | Performance et coût               |
 
 ---
 
