@@ -9,18 +9,15 @@
 🔗 OpenAPI: /docs
 """
 # Load environment variables from .env file
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.concurrency import run_in_threadpool
-import base64
 from dotenv import load_dotenv
-import time
 import logging
 import os
-import httpx # Import httpx
 
-from .routers import analysis, inference, simulation
+from .routers import analysis, inference, simulation, video_inference
 from .ml_model import ml_manager
 from .gemini_integration import gemini_service
 
@@ -32,11 +29,9 @@ logger = logging.getLogger(__name__)
 HF_INFERENCE_ENDPOINT_URL = os.getenv("HF_INFERENCE_ENDPOINT_URL")
 HF_API_TOKEN = os.getenv("HF_API_TOKEN")
 
-# Nous n'avons plus besoin de hf_inference_client ici
-# hf_inference_client = None
-# if HF_INFERENCE_ENDPOINT_URL and HF_API_TOKEN:
-#     hf_inference_client = InferenceClient(model=HF_INFERENCE_ENDPOINT_URL, token=HF_API_TOKEN)
-# --- End Hugging Face Configuration ---
+# --- API Authentication Configuration ---
+# Moved to src/api/dependencies.py
+# --- End API Authentication Configuration ---
 
 app = FastAPI(
     title="TikTok Virality Prediction API",
@@ -45,6 +40,7 @@ app = FastAPI(
     docs_url=None,  # Disable default docs
     redoc_url="/redoc"
 )
+
 
 @app.get("/docs", include_in_schema=False)
 async def custom_swagger_ui_html():
@@ -76,7 +72,11 @@ app.add_middleware(
 
 app.include_router(analysis.router, prefix="/analysis", tags=["Analysis"])
 app.include_router(inference.router, prefix="/inference", tags=["Inference"])
-app.include_router(simulation.router, prefix="/simulation", tags=["Simulation"])
+app.include_router(simulation.router, prefix="/simulation",
+                   tags=["Simulation"])
+app.include_router(video_inference.router, prefix="/video",
+                   tags=["Video Inference"])
+
 
 @app.on_event("startup")
 async def startup_event():
@@ -103,6 +103,7 @@ async def startup_event():
     except Exception as e:
         print(f"⚠️ Model loading error: {e}")
 
+
 @app.get("/")
 async def root():
     """Home page with project information"""
@@ -113,6 +114,7 @@ async def root():
         "docs": "/docs",
         "health": "/health",
     }
+
 
 @app.get("/health")
 async def health_check():
@@ -125,73 +127,6 @@ async def health_check():
         "gemini_available": gemini_service.is_available(),
         "environment": os.getenv("RAILWAY_ENVIRONMENT", "development")
     }
-
-@app.get("/infer")
-async def infer_on_sample_video():
-    """
-    Performs inference on a sample video using a remote Hugging Face Endpoint.
-    The server remains non-blocking and delegates the heavy computation.
-    """
-    start_time = time.time()
-    video_path = "static/video-test.mp4"
-    prompt = "Describe this video in detail"
-
-    if not HF_INFERENCE_ENDPOINT_URL or not HF_API_TOKEN:
-        raise HTTPException(
-            status_code=503,
-            detail="Hugging Face Inference Endpoint is not configured on the server. Please set HF_INFERENCE_ENDPOINT_URL and HF_API_TOKEN environment variables."
-        )
-
-    try:
-        with open(video_path, "rb") as f:
-            encoded_video = base64.b64encode(f.read()).decode("utf-8")
-
-        messages = [
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": prompt},
-                    {"type": "video", "data": encoded_video}
-                ]
-            }
-        ]
-
-        payload = {
-            "inputs": messages,
-            "parameters": {
-                "max_new_tokens": 128
-            }
-        }
-
-        headers = {
-            "Authorization": f"Bearer {HF_API_TOKEN}",
-            "Content-Type": "application/json"
-        }
-
-        async with httpx.AsyncClient() as client:
-            response = await client.post(HF_INFERENCE_ENDPOINT_URL, json=payload, headers=headers, timeout=300.0)
-            response.raise_for_status() # Lève une exception pour les codes d'erreur HTTP (4xx ou 5xx)
-            raw_response = response.json()
-        
-        result_text = raw_response.get("generated_text", "No text generated.")
-
-    except FileNotFoundError:
-        logger.error(f"Video file not found at {video_path}")
-        raise HTTPException(status_code=404, detail=f"Video file not found at {video_path}")
-    except httpx.RequestError as e:
-        logger.error(f"HTTP request error to Hugging Face Inference Endpoint: {e}")
-        raise HTTPException(status_code=500, detail=f"Inference failed due to network error: {str(e)}")
-    except httpx.HTTPStatusError as e:
-        logger.error(f"HTTP status error from Hugging Face Inference Endpoint: {e.response.status_code} - {e.response.text}")
-        raise HTTPException(status_code=500, detail=f"Inference failed with HTTP error: {e.response.status_code} - {e.response.text}")
-    except Exception as e:
-        logger.error(f"Hugging Face inference error: {e}")
-        raise HTTPException(status_code=500, detail=f"Inference failed: {str(e)}")
-
-    end_time = time.time()
-    inference_time = end_time - start_time
-    print(f"Remote inference time: {inference_time:.2f} seconds")
-    return {"result": result_text}
 
 if __name__ == "__main__":
     import uvicorn

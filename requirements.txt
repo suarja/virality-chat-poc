@@ -25,3 +25,4 @@ av
 pillow
 huggingface_hub
 httpx
+google-generativeai

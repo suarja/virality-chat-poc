@@ -52,3 +52,7 @@ class TikTokAnalysis(BaseModel):
     status: str
     cache_used: bool = False
     gemini_used: bool = False
+
+class VideoInferenceResponse(BaseModel):
+    result: str
+    inference_time: float
