@@ -22,4 +22,6 @@ torch
 git+https://github.com/huggingface/transformers@v4.49.0-SmolVLM-2
 num2words
 av
-pillowhuggingface_hub
+pillow
+huggingface_hub
+httpx

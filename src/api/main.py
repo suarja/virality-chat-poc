@@ -13,12 +13,12 @@ from fastapi import FastAPI, HTTPException
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.concurrency import run_in_threadpool
-from huggingface_hub import InferenceClient
 import base64
 from dotenv import load_dotenv
 import time
 import logging
 import os
+import httpx # Import httpx
 
 from .routers import analysis, inference, simulation
 from .ml_model import ml_manager
@@ -31,9 +31,11 @@ logger = logging.getLogger(__name__)
 # --- Hugging Face Inference Configuration ---
 HF_INFERENCE_ENDPOINT_URL = os.getenv("HF_INFERENCE_ENDPOINT_URL")
 HF_API_TOKEN = os.getenv("HF_API_TOKEN")
-hf_inference_client = None
-if HF_INFERENCE_ENDPOINT_URL and HF_API_TOKEN:
-    hf_inference_client = InferenceClient(model=HF_INFERENCE_ENDPOINT_URL, token=HF_API_TOKEN)
+
+# Nous n'avons plus besoin de hf_inference_client ici
+# hf_inference_client = None
+# if HF_INFERENCE_ENDPOINT_URL and HF_API_TOKEN:
+#     hf_inference_client = InferenceClient(model=HF_INFERENCE_ENDPOINT_URL, token=HF_API_TOKEN)
 # --- End Hugging Face Configuration ---
 
 app = FastAPI(
@@ -134,39 +136,54 @@ async def infer_on_sample_video():
     video_path = "static/video-test.mp4"
     prompt = "Describe this video in detail"
 
-    if not hf_inference_client:
+    if not HF_INFERENCE_ENDPOINT_URL or not HF_API_TOKEN:
         raise HTTPException(
             status_code=503,
-            detail="Hugging Face Inference Endpoint is not configured on the server."
+            detail="Hugging Face Inference Endpoint is not configured on the server. Please set HF_INFERENCE_ENDPOINT_URL and HF_API_TOKEN environment variables."
         )
 
     try:
         with open(video_path, "rb") as f:
             encoded_video = base64.b64encode(f.read()).decode("utf-8")
-        data_uri = f"data:video/mp4;base64,{encoded_video}"
 
         messages = [
             {
                 "role": "user",
                 "content": [
                     {"type": "text", "text": prompt},
-                    {"type": "image_url", "image_url": {"url": data_uri}}
+                    {"type": "video", "data": encoded_video}
                 ]
             }
         ]
 
-        response = await run_in_threadpool(
-            hf_inference_client.chat_completion,
-            messages=messages,
-            max_tokens=128,
-            stream=False
-        )
+        payload = {
+            "inputs": messages,
+            "parameters": {
+                "max_new_tokens": 128
+            }
+        }
+
+        headers = {
+            "Authorization": f"Bearer {HF_API_TOKEN}",
+            "Content-Type": "application/json"
+        }
+
+        async with httpx.AsyncClient() as client:
+            response = await client.post(HF_INFERENCE_ENDPOINT_URL, json=payload, headers=headers, timeout=300.0)
+            response.raise_for_status() # Lève une exception pour les codes d'erreur HTTP (4xx ou 5xx)
+            raw_response = response.json()
         
-        result_text = response.choices[0].message.content
+        result_text = raw_response.get("generated_text", "No text generated.")
 
     except FileNotFoundError:
         logger.error(f"Video file not found at {video_path}")
         raise HTTPException(status_code=404, detail=f"Video file not found at {video_path}")
+    except httpx.RequestError as e:
+        logger.error(f"HTTP request error to Hugging Face Inference Endpoint: {e}")
+        raise HTTPException(status_code=500, detail=f"Inference failed due to network error: {str(e)}")
+    except httpx.HTTPStatusError as e:
+        logger.error(f"HTTP status error from Hugging Face Inference Endpoint: {e.response.status_code} - {e.response.text}")
+        raise HTTPException(status_code=500, detail=f"Inference failed with HTTP error: {e.response.status_code} - {e.response.text}")
     except Exception as e:
         logger.error(f"Hugging Face inference error: {e}")
         raise HTTPException(status_code=500, detail=f"Inference failed: {str(e)}")
