@@ -75,14 +75,24 @@ app.add_middleware(
 
 
 
+# Determine device and dtype
+if torch.cuda.is_available():
+    device = "cuda"
+    dtype = torch.bfloat16
+elif torch.backends.mps.is_available():
+    device = "mps"
+    dtype = torch.float16  # MPS doesn't support bfloat16
+else:
+    device = "cpu"
+    dtype = torch.float32
+
 # On load le modèle UNE SEULE FOIS (évite de reload à chaque appel)
 model_path = "HuggingFaceTB/SmolVLM2-500M-Video-Instruct"
 processor = AutoProcessor.from_pretrained(model_path)
 model = AutoModelForImageTextToText.from_pretrained(
     model_path,
-    torch_dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32,
-    _attn_implementation="flash_attention_2"
-).to("cuda" if torch.cuda.is_available() else "cpu")
+    torch_dtype=dtype,
+).to(device)
 
 
 @app.get("/infer")
@@ -106,7 +116,7 @@ def infer_on_sample_video():
         tokenize=True,
         return_dict=True,
         return_tensors="pt",
-    ).to(model.device, dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32)
+    ).to(device, dtype=dtype)
 
     # Inference
     with torch.no_grad():
