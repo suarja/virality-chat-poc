@@ -11,20 +11,26 @@ from ..models import VideoInferenceResponse
 
 logger = logging.getLogger(__name__)
 
-HF_INFERENCE_ENDPOINT_URL = os.getenv("HF_INFERENCE_ENDPOINT_URL")
-HF_API_TOKEN = os.getenv("HF_API_TOKEN")
+
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
-# Configure Gemini
+
+# --- Configure Gemini ---
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
     gemini_model = genai.GenerativeModel('gemini-pro')
 else:
-    logger.warning("GEMINI_API_KEY not set. Gemini post-processing will be skipped.")
+    logger.warning(
+        "GEMINI_API_KEY not set. Gemini post-processing will be skipped.")
     gemini_model = None
+
 
 async def perform_video_inference(video_file: UploadFile) -> VideoInferenceResponse:
     start_time = time.time()
+
+    # Lire les variables d'environnement ici, juste avant leur utilisation
+    HF_INFERENCE_ENDPOINT_URL = os.getenv("HF_INFERENCE_ENDPOINT_URL")
+    HF_API_TOKEN = os.getenv("HF_API_TOKEN")
 
     # Le prompt détaillé pour guider le modèle SmolVLM
     smolvlm_prompt = """
@@ -139,21 +145,21 @@ async def perform_video_inference(video_file: UploadFile) -> VideoInferenceRespo
                   "key_points": ["point1", "point2"]
                 }}
               ],
-              "structure": {
+              "structure": {{
                 "has_hook": true|false,
                 "has_call_to_action": true|false,
                 "transitions_count": 0,
                 "pacing": "fast|medium|slow"
-              },
+              }},
               "content_type": "tutorial|entertainment|educational|product_demo|interview|vlog|other",
               "language": "fr|en|es|de|other",
               "duration_category": "short|medium|long",
-              "key_moments": {
+              "key_moments": {{
                 "hook_start": "00:05",
                 "main_content_start": "00:15",
                 "call_to_action_start": "01:45",
                 "end": "02:00"
-              }
+              }}
             }}
 
             Guidelines:
@@ -199,3 +205,4 @@ async def perform_video_inference(video_file: UploadFile) -> VideoInferenceRespo
     inference_time = end_time - start_time
     print(f"Remote inference time: {inference_time:.2f} seconds")
     return VideoInferenceResponse(result=result_text, inference_time=inference_time)
+
