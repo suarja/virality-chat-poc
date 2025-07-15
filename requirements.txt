@@ -17,3 +17,9 @@ joblib>=1.4.0
 # DDD Phase 4 - TikTok Scraping Integration
 apify-client>=1.0.0,<2.0.0
 requests>=2.31.0 
+
+torch
+git+https://github.com/huggingface/transformers@v4.49.0-SmolVLM-2
+num2words
+flash-attn
+decord

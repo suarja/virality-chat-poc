@@ -9,6 +9,7 @@
 🔗 OpenAPI: /docs
 """
 # Load environment variables from .env file
+from fastapi import FastAPI
 from datetime import datetime
 import logging
 import os
@@ -23,6 +24,8 @@ from .gemini_integration import gemini_service
 from .ml_model import ml_manager
 from .feature_integration import feature_manager
 from .tiktok_scraper_integration import tiktok_scraper_integration
+from transformers import AutoProcessor, AutoModelForImageTextToText
+import torch
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -69,6 +72,51 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+
+# On load le modèle UNE SEULE FOIS (évite de reload à chaque appel)
+model_path = "HuggingFaceTB/SmolVLM2-500M-Video-Instruct"
+processor = AutoProcessor.from_pretrained(model_path)
+model = AutoModelForImageTextToText.from_pretrained(
+    model_path,
+    torch_dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32,
+    _attn_implementation="flash_attention_2"
+).to("cuda" if torch.cuda.is_available() else "cpu")
+
+
+@app.get("/infer")
+def infer_on_sample_video():
+    # Chemin de ta vidéo de test (mets la dans le repo/server pour commencer)
+    video_path = "static/video-test.mp4"  # adapte le chemin à ta vidéo !
+
+    messages = [
+        {
+            "role": "user",
+            "content": [
+                {"type": "video", "path": video_path},
+                {"type": "text", "text": "Describe this video in detail"}
+            ]
+        },
+    ]
+    # Prepare input
+    inputs = processor.apply_chat_template(
+        messages,
+        add_generation_prompt=True,
+        tokenize=True,
+        return_dict=True,
+        return_tensors="pt",
+    ).to(model.device, dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32)
+
+    # Inference
+    with torch.no_grad():
+        generated_ids = model.generate(
+            **inputs, do_sample=False, max_new_tokens=128)
+        generated_texts = processor.batch_decode(
+            generated_ids,
+            skip_special_tokens=True,
+        )
+    return {"result": generated_texts[0]}
 
 # Pydantic Models
 
@@ -130,6 +178,7 @@ class TikTokAnalysis(BaseModel):
 # Simulation service
 simulation_service = TikTokSimulationService(
     feature_manager, ml_manager, tiktok_scraper_integration)
+
 
 
 @app.on_event("startup")
